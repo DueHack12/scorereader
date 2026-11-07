@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+build/
+dist/
+*.spec
+# runtime / per-installation files
+scorereader_config.json
+scorereader_state.bin*
+logs/
+text_out/
