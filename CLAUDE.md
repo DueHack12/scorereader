@@ -15,6 +15,7 @@ ScoreReader replaces Sportzcast **ScoreConnect III** for a high-school broadcast
 | `scoreboards/` | Multi-vendor decoders: `base.py` (Protocol/Decoder framework), `common.py` (digit/BCD/checksum helpers), `pic55aa.py` (PIC decode-mode framing), one module per brand, `contracts.py` (contract → output fields, Sportzcast JSON, sbdata, clock-status emulation), `hardware.py` (bot set-up per wiring option), `catalog.json` (brands, sports, wiring from ScoreConnect's config DB). Per-brand wire docs in `docs/vendors/`. |
 | `linux/`, `mac/` | `install.sh` (packages, udev rule, hid_mcp2221 blacklist, optional systemd service), launchers |
 | `daktronics_fields.json` | RTD field positions for every Daktronics sport (1-based), loaded by `SportMap` |
+| `README.md` / `docs/REFERENCE.md` | README is the short operator guide (get started, connect graphics, troubleshooting); every detail (settings, fields, MQTT, CLI, custom_fields) goes in REFERENCE.md |
 | `docs/PROTOCOL.md` | Wire formats: ScoreLinkII/MCP2221/PIC, current loop, RTD, MQTT/sbdata. **Read this before touching decoders.** |
 | `tests/` | pytest. `conftest.make_cl_frame()` builds current-loop frames. `test_current_loop.py` contains real captured soccer bytes. |
 | `windows/` | `.bat` launchers for non-technical operators, plus `build_exe.bat` |
