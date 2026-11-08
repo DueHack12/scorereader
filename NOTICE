@@ -1,5 +1,5 @@
 ScoreReader
-Copyright (c) 2026 ScoreReader contributors - MIT License (see LICENSE)
+Copyright (c) 2026 Jack Singewald - MIT License (see LICENSE)
 
 daktronics_fields.json is derived from the sport field tables of
 daktronics-allsport-5000-rs (https://crates.io/crates/daktronics-allsport-5000),

@@ -69,4 +69,4 @@ The non-Daktronics brands haven't been tested on a real board yet. If yours read
 - **Other brands:** worked out from the ScoreConnect III software the owner already has, so that it can work with equipment the owner already has. No vendor code or files are included.
 - **No affiliation:** ScoreReader isn't affiliated with or endorsed by Sportzcast, Genius Sports or Daktronics. Product names are trademarks of their owners.
 
-MIT License © 2026 ScoreReader contributors
+MIT License © 2026 Jack Singewald
