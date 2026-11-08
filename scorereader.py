@@ -46,6 +46,7 @@ __version__ = "2.0.0"
 
 APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0] if getattr(sys, "frozen", False) else __file__))
 RES_DIR = getattr(sys, "_MEIPASS", APP_DIR)  # PyInstaller support
+ASSETS_DIR = os.path.join(RES_DIR, "assets")  # icon.svg / icon.png / menubar.png
 CONFIG_PATH = os.path.join(APP_DIR, "scorereader_config.json")
 FIELDS_PATH = os.path.join(RES_DIR, "daktronics_fields.json")
 STATE_PATH = os.path.join(APP_DIR, "scorereader_state.bin")
@@ -133,6 +134,20 @@ def log(msg: str) -> None:
     with _PRINT_LOCK:
         print(line, flush=True)
     STATUS.add_log(line)
+
+
+def set_window_title(title: str) -> None:
+    """Name the console window/tab, so the taskbar (Windows) or Terminal (Mac/Linux) shows "ScoreReader"."""
+    try:
+        if sys.platform == "win32":
+            import ctypes
+
+            ctypes.windll.kernel32.SetConsoleTitleW(title)
+        elif sys.stdout is not None and sys.stdout.isatty():
+            sys.stdout.write(f"\033]0;{title}\007")
+            sys.stdout.flush()
+    except Exception:
+        pass
 
 
 def deep_merge(base: dict, over: dict) -> dict:
@@ -1441,6 +1456,7 @@ def write_text_files(folder: str, data: dict, cache: dict):
 
 # --------------------------------------------------------------------------- web server
 DASHBOARD_HTML = r"""<!doctype html><html><head><meta charset="utf-8"><title>ScoreReader</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
 :root{--bg:#0e1116;--card:#171b22;--ink:#e8ecf1;--mut:#8a94a3;--ok:#2fbf71;--bad:#e5484d;--warn:#f5a524;--acc:#5b8def}
@@ -2023,6 +2039,14 @@ class App:
                     w.writerow(flat.keys())
                     w.writerow(flat.values())
                     return self._send(200, s.getvalue(), "text/csv")
+                if u.path in ("/favicon.svg", "/favicon.ico", "/icon.png"):
+                    name, ctype = (("icon.png", "image/png") if u.path == "/icon.png"
+                                   else ("icon.svg", "image/svg+xml"))
+                    try:
+                        with open(os.path.join(ASSETS_DIR, name), "rb") as f:
+                            return self._send(200, f.read(), ctype)
+                    except OSError:
+                        return self._send(404, "not found", "text/plain")
                 if u.path == "/api/state":
                     return self._send(200, json.dumps(app.state_json()), "application/json")
                 if u.path == "/api/settings":
@@ -2063,6 +2087,22 @@ class App:
         return H
 
     def run(self):
+        """Start everything and block until Ctrl+C."""
+        self.start()
+        try:
+            while not self.stop.is_set():
+                time.sleep(1)
+        except KeyboardInterrupt:
+            log("Stopping…")
+        finally:
+            self.shutdown()
+
+    @property
+    def dashboard_url(self) -> str:
+        return f"http://localhost:{int(self.cfg['http_port'])}/"
+
+    def start(self):
+        """Start the source, outputs and web server in background threads, then return."""
         if self.cfg.get("save_state"):
             self.decoder.load(STATE_PATH)
         self.running = True
@@ -2075,25 +2115,27 @@ class App:
         threading.Thread(target=self.update_loop, daemon=True).start()
         port = int(self.cfg["http_port"])
         srv = ThreadingHTTPServer(("0.0.0.0", port), self.make_handler())
+        self._srv = srv
         threading.Thread(target=srv.serve_forever, daemon=True).start()
         log(f"Dashboard:        http://localhost:{port}/")
         log(f"vMix data source: http://localhost:{port}/data.json   (also /data.xml, /data.csv)")
         if self.mqtt:
             log(f"MQTT topics:      bot/{self.mqtt.bot}/json, bot/{self.mqtt.bot}/sbdata, bot/{self.mqtt.bot}/raw")
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            log("Stopping…")
-        finally:
-            self.stop.set()
-            self.reader.stop.set()
+
+    def shutdown(self):
+        if getattr(self, "_shut", False):
+            return
+        self._shut = True
+        self.stop.set()
+        self.reader.stop.set()
+        srv = getattr(self, "_srv", None)
+        if srv is not None:
             srv.shutdown()
-            if self.cfg.get("save_state"):
-                try:
-                    self.decoder.save(STATE_PATH)
-                except OSError:
-                    pass
+        if self.cfg.get("save_state"):
+            try:
+                self.decoder.save(STATE_PATH)
+            except OSError:
+                pass
 
 
 # --------------------------------------------------------------------------- CLI tools
@@ -2197,6 +2239,7 @@ def main():
                     help="scoreboard brand+sport id (see --list-scoreboards); this session only")
     ap.add_argument("--list-scoreboards", action="store_true", help="list supported scoreboard brands/sports and exit")
     ap.add_argument("--replay", metavar="FILE", help="replay a raw capture from logs/raw_*.bin")
+    ap.add_argument("--no-menubar", action="store_true", help="Mac: don't show the ScoreReader menu bar icon")
     ap.add_argument("--fresh", action="store_true", help="ignore the saved last-known scoreboard state")
     ap.add_argument("--list-ports", action="store_true", help="list serial ports and exit")
     ap.add_argument("--probe", action="store_true", help="talk to the ScoreLinkII PIC (version/config) and exit")
@@ -2260,7 +2303,27 @@ def main():
     if saved.get("source") in RUNTIME_ONLY_SOURCES:
         print(f"NOTE: scorereader_config.json has \"source\": \"{saved['source']}\" - that is not live scoreboard data. "
               "Pick the live source in Settings.")
-    App(cfg, saved=saved).run()
+    set_window_title(f"ScoreReader {__version__}")
+    app = App(cfg, saved=saved)
+    if sys.platform == "darwin" and not a.no_menubar:
+        try:
+            import menubar
+
+            if menubar.available():
+                app.start()
+                return menubar.run(app)  # owns the main thread until Quit
+        except Exception as e:
+            log(f"Menu bar icon unavailable ({e}); running in this window only")
+            if app.running:
+                try:
+                    while not app.stop.is_set():
+                        time.sleep(1)
+                except KeyboardInterrupt:
+                    log("Stopping…")
+                finally:
+                    app.shutdown()
+                return
+    app.run()
 
 
 if __name__ == "__main__":
