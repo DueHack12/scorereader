@@ -42,15 +42,21 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from xml.sax.saxutils import escape as xml_escape
 
-__version__ = "2.0.0"
+__version__ = "2.1.0"
 
 APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0] if getattr(sys, "frozen", False) else __file__))
 RES_DIR = getattr(sys, "_MEIPASS", APP_DIR)  # PyInstaller support
+# A Mac app (ScoreReader.app) can't write inside itself (macOS may even run it from a read-only copy), so its
+# settings, logs and text files live in ~/Library/Application Support/ScoreReader. Everything else keeps them
+# next to the program, as before.
+MAC_APP = sys.platform == "darwin" and getattr(sys, "frozen", False) and ".app/Contents/" in APP_DIR
+DATA_DIR = (os.path.join(os.path.expanduser("~"), "Library", "Application Support", "ScoreReader")
+            if MAC_APP else APP_DIR)
 ASSETS_DIR = os.path.join(RES_DIR, "assets")  # icon.svg / icon.png / menubar.png
-CONFIG_PATH = os.path.join(APP_DIR, "scorereader_config.json")
+CONFIG_PATH = os.path.join(DATA_DIR, "scorereader_config.json")
 FIELDS_PATH = os.path.join(RES_DIR, "daktronics_fields.json")
-STATE_PATH = os.path.join(APP_DIR, "scorereader_state.bin")
-LOG_DIR = os.path.join(APP_DIR, "logs")
+STATE_PATH = os.path.join(DATA_DIR, "scorereader_state.bin")
+LOG_DIR = os.path.join(DATA_DIR, "logs")
 
 SCORELINK_VID, SCORELINK_PID = 0x04D8, 0x00DD
 
@@ -184,6 +190,7 @@ def load_config() -> dict:
 
 
 def save_config(cfg: dict) -> None:
+    os.makedirs(os.path.dirname(CONFIG_PATH) or ".", exist_ok=True)
     tmp = CONFIG_PATH + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(cfg, f, indent=2, ensure_ascii=False)
@@ -1837,7 +1844,7 @@ class App:
             "scoreboards": self.scoreboards_json(),
             "live_source": self.live_source(),
             "config_path": CONFIG_PATH,
-            "text_folder": os.path.join(APP_DIR, get_path(self.cfg, "text_files.folder", "text_out")),
+            "text_folder": os.path.join(DATA_DIR, get_path(self.cfg, "text_files.folder", "text_out")),
         }
 
     def apply_settings(self, changes: dict) -> dict:
@@ -1952,7 +1959,7 @@ class App:
                 tf = self.cfg.get("text_files", {})
                 if tf.get("enabled"):
                     try:
-                        write_text_files(os.path.join(APP_DIR, tf.get("folder", "text_out")), d, text_cache)
+                        write_text_files(os.path.join(DATA_DIR, tf.get("folder", "text_out")), d, text_cache)
                     except OSError as e:
                         log(f"text file write error: {e}")
                 if self.cfg.get("save_state") and time.time() - last_save > 2:
@@ -2261,7 +2268,8 @@ def main():
                     help="re-send the ScoreConnect config commands (Daktronics football) to the bot and exit")
     ap.add_argument("--sniff", type=float, nargs="?", const=20, metavar="SECONDS",
                     help="hex-dump raw bytes from the bot (default 20s) and exit")
-    a = ap.parse_args()
+    # Old macOS versions pass a "-psn_…" process serial number to apps opened from Finder.
+    a = ap.parse_args([x for x in sys.argv[1:] if not x.startswith("-psn_")])
 
     if hasattr(signal, "SIGTERM"):  # systemd / launchd stop = Ctrl+C: shut down cleanly
         def _on_term(*_):
@@ -2318,6 +2326,8 @@ def main():
         print(f"NOTE: scorereader_config.json has \"source\": \"{saved['source']}\" - that is not live scoreboard data. "
               "Pick the live source in Settings.")
     set_window_title(f"ScoreReader {__version__}")
+    if MAC_APP:  # no Terminal window: keep the log in a file (menu bar > Open logs folder)
+        detach_console(os.path.join(LOG_DIR, "scorereader.log"))
     app = App(cfg, saved=saved)
     if sys.platform == "darwin" and not a.no_menubar:
         try:
@@ -2325,6 +2335,10 @@ def main():
 
             if menubar.available():
                 app.start()
+                if MAC_APP:  # opened from Finder/Launchpad: show the dashboard so it's clear it started
+                    import webbrowser
+
+                    threading.Timer(1.5, webbrowser.open, args=(app.dashboard_url,)).start()
                 return menubar.run(app)  # owns the main thread until Quit
         except Exception as e:
             log(f"Menu bar icon unavailable ({e}); running in this window only")

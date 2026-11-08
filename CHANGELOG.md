@@ -1,6 +1,7 @@
 # Changelog
 
-## Unreleased
+## 2.1.0 — 2026-11-08
+- **Mac app:** the Mac download is now `ScoreReader-macos-arm64.dmg` with `ScoreReader.app` (drag it to Applications). It runs in the menu bar and Dock with its own name and logo, without a Terminal window, and opens the dashboard when it starts. Its settings and logs are in `~/Library/Application Support/ScoreReader`.
 - **Logo:** a new ScoreReader icon (a seven-segment S with a signal), used for the Windows app, the Mac Dock and menu bar, and the dashboard's browser tab.
 - **Windows:** `ScoreReader.exe` shows the logo, and its window is titled "ScoreReader <version>", so the taskbar shows the name and logo.
 - **Mac menu bar:** live status and score, Open dashboard, Re-init bot, Demo mode, Open logs folder and Quit. Closing the Terminal window keeps ScoreReader running in the menu bar (the log goes on in `logs/scorereader.log`). The app menu has **Quit ScoreReader** (⌘Q). `--no-menubar` turns the icon off.
