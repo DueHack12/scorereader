@@ -1,7 +1,20 @@
 # Changelog
 
+## 2.0.0 — 2026-11-08
+- **Every ScoreConnect scoreboard brand:** about 300 brand/sport layouts across 50 brands, in the new `scoreboards/` package, picked in Settings or with `--scoreboard ID`. The ScoreBot is configured for the chosen brand and wiring automatically, and MQTT payloads come from the Sportzcast contract. These are untested on real boards; Daktronics All Sport 5000 stays the default with the original decoders.
+- **Settings panel** in the dashboard: data source (including demo and replay), scoreboard brand, team names, abbreviations and colors, vMix, MQTT, files and ports. Source changes apply live.
+- **Mac, Linux and Raspberry Pi:** launchers, an installer (packages, udev rule, optional systemd service) and CI builds for macOS arm64, Linux x64 and Linux arm64.
+- **Fixed:** command-line options (`--demo`, `--replay`, `--no-mqtt` …) were written into `scorereader_config.json` when the sport was changed from the dashboard. Demo and replay are now never saved.
+- **Fixed:** team names were missing from data.json and vMix in current-loop mode.
+- **Changed:** remembering the board state across restarts is now optional and off by default.
+- **Fixed:** changing a setting could change the built-in defaults (shared nested dicts in `deep_merge`).
+- **Daktronics console sports:** console codes other than football (6601) and soccer (7601), such as basketball, baseball, hockey, volleyball and wrestling, now switch automatically to ScoreConnect's layout for that sport instead of being read as football.
+- **Fixed:** on the built-in RTD path, MQTT sent a football-shaped message for every sport; basketball, baseball, softball, hockey, lacrosse and volleyball now send their own.
+- **Fixed:** switching back to the built-in Daktronics decoders after using another brand now restores the Daktronics ScoreBot setup.
+- **Docs:** shorter README for operators; full details moved to `docs/REFERENCE.md`, and per-brand wire formats are in `docs/vendors/`.
+
 ## 1.0.0 — 2026-11-07
-First release. It replaced ScoreConnect III 1.5.0.1 after that update broke the ScoreBot, and has since been used for football and soccer at Rafferty Stadium.
+First release. It replaced ScoreConnect III 1.5.0.1 after that update broke the ScoreBot, and has since been used live for football and soccer.
 
 - **ScoreLinkII/ScoreBot support:**
   - Talks to the bot directly over USB (MCP2221): switches GP2 between command and data mode, and probes or configures the PIC.

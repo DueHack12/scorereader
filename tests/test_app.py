@@ -25,4 +25,4 @@ def test_demo_end_to_end(tmp_path, monkeypatch):
         except OSError:
             pass
     app.stop.set()
-    assert d and d["clock"] and d["home_name"] == "FAIRFIELD PREP" and d["possession"] in ("H", "V")
+    assert d and d["clock"] and d["home_name"] == "HOME TEAM" and d["possession"] in ("H", "V")

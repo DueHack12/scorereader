@@ -68,8 +68,10 @@ def build_payloads(d: dict, cfg: dict, now: float | None = None):
     now = time.time() if now is None else now
     m = cfg.get("mqtt", {})
     bot = int(m.get("bot_number", 0))
-    home_name = m.get("home_team_name", "HOME")
-    guest_name = m.get("guest_team_name", "GUEST")
+    # ScoreReader puts the team names (Settings > Teams, or the console's) into the data; the legacy
+    # mqtt.home_team_name / guest_team_name keys are the fallback for older configs and direct callers.
+    home_name = d.get("home_name") or m.get("home_team_name", "HOME")
+    guest_name = d.get("guest_name") or m.get("guest_team_name", "GUEST")
 
     mode, mt, mo, st, so, tenths = _clock_parts(d.get("clock", ""))
     running = bool(d.get("clock_running"))
@@ -546,7 +548,6 @@ class SportzcastMqttOutput:
     def __init__(self, cfg: dict, log=print):
         self.cfg = cfg
         m = cfg.get("mqtt", {})
-        self.bot = int(m.get("bot_number", 0))
         self.min_interval = 1.0 / max(1.0, float(m.get("publish_rate", 10)))
         self.heartbeat = float(m.get("heartbeat_seconds", 1.0))
         self.publish_raw = bool(m.get("publish_raw", True))
@@ -555,10 +556,19 @@ class SportzcastMqttOutput:
         else:
             self.out = MiniBroker(m.get("bind", "0.0.0.0"), int(m.get("tcp_port", 1883)), int(m.get("ws_port", 8083)), log=log)
         self.latest: dict | None = None
+        self.latest_contract = None
         self.last_sent = 0.0
         self.last_json = ""
         self.lock = threading.Lock()
         self.event = threading.Event()
+
+    @property
+    def bot(self) -> int:
+        """Read live from the config, so a new bot number from Settings applies immediately."""
+        try:
+            return int(self.cfg.get("mqtt", {}).get("bot_number", 0))
+        except (TypeError, ValueError):
+            return 0
 
     @property
     def status(self):
@@ -569,10 +579,31 @@ class SportzcastMqttOutput:
         self.out.start()
         threading.Thread(target=self._loop, daemon=True, name="mqtt-publisher").start()
 
-    def update(self, data: dict):
+    def update(self, data: dict, contract=None):
+        """data = ScoreReader fields. contract = (name, dict) from a brand decoder (scoreboards package):
+        then the Sportzcast JSON/sbdata come straight from the contract, exactly as ScoreConnect builds them."""
         with self.lock:
             self.latest = dict(data)
+            self.latest_contract = contract
         self.event.set()
+
+    def _payloads(self, d: dict, contract):
+        if contract is not None:
+            try:
+                from scoreboards import contracts
+
+                m = self.cfg.get("mqtt", {})
+                meta = {"bot_number": self.bot, "home_team_name": d.get("home_name", ""),
+                        "guest_team_name": d.get("guest_name", ""), "publish_rate": float(m.get("publish_rate", 10)),
+                        "now": time.time()}
+                name, c = contract
+                return (json.dumps(contracts.sportzcast_json(name, c, meta), ensure_ascii=False, separators=(",", ":")),
+                        contracts.sbdata(name, c, meta))
+            except Exception as e:
+                if not getattr(self, "_contract_warned", False):
+                    self._contract_warned = True
+                    print(f"MQTT: contract payloads unavailable ({e}); using the football/soccer builder")
+        return build_payloads(d, self.cfg)
 
     def raw(self, chunk: bytes):
         if self.publish_raw:
@@ -583,16 +614,16 @@ class SportzcastMqttOutput:
             self.event.wait(self.heartbeat)
             self.event.clear()
             with self.lock:
-                d = self.latest
+                d, contract = self.latest, self.latest_contract
             if d is None:
                 continue
             wait = self.min_interval - (time.time() - self.last_sent)
             if wait > 0:
                 time.sleep(wait)
                 with self.lock:
-                    d = self.latest
+                    d, contract = self.latest, self.latest_contract
             try:
-                js, sb = build_payloads(d, self.cfg)
+                js, sb = self._payloads(d, contract)
             except Exception as e:  # never kill the publisher
                 print(f"MQTT payload error: {e}")
                 continue

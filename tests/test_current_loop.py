@@ -47,7 +47,7 @@ def test_bad_checksum_rejected():
 
 
 # Bytes captured from a real All Sport 5000 in soccer (code 7601):
-# board showed 60:00, JESUITS 5 / FALCONS 6, HALF 7, CKICKS 3/4, SOG 1/2
+# board showed 60:00, HOME 5 / GUEST 6, HALF 7, CKICKS 3/4, SOG 1/2
 H = bytes.fromhex
 SOCCER = {
     0xFE: b"76015000430",

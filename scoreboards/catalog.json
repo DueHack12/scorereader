@@ -1,0 +1,3230 @@
+{
+ "source": "ScoreConnect III (Windows build) configuration database (facts only: names, codes, wiring)",
+ "vendors": [
+  {
+   "id": -1,
+   "name": "No vendor",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "CUTOM_DYNAMYC_BUILD",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 0,
+   "name": "SportzCastSbData",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS232_NODECODE_19200_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY6_STRTCHR02_STPCHR04_INT4D"
+    }
+   ]
+  },
+  {
+   "id": 1,
+   "name": "Daktronics",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_CURRENTLOOP_NODECODE_19200_INVERTED",
+     "eth_serial": "MODE55aa_DELAY2_STRTCHR02_STPCHR04_INT4D"
+    },
+    {
+     "connection": "Wireless",
+     "hardware": "LAIRD_XBEE_NODECODE_57600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "name": "Fairplay",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485/22_NODECODE_57600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 3,
+   "name": "Nevco",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_NEVCO_DECODENEVCO_57600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4D"
+    }
+   ]
+  },
+  {
+   "id": 4,
+   "name": "ElectroMech V2",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_CURRENTLOOP_NODECODE_2400_INVERTED",
+     "eth_serial": "MODEDELAY_DELAY6_STRTCHR02_STPCHR04_INT4D"
+    },
+    {
+     "connection": "Wireless",
+     "hardware": "LAIRD_XBEE_NODECODE_57600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 5,
+   "name": "Daktronics Public",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS232_NODECODE_19200_NORMAL",
+     "eth_serial": "MODE16/17_DELAY2_STRTCHR16_STPCHR17_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 6,
+   "name": "Daktronics AllSport CG",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS232_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 7,
+   "name": "Fairplay MP69",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485/422_DECODEMP69_57600_INVERTED",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHRFC_STPCHR20_INT4C"
+    },
+    {
+     "connection": "POffset=3",
+     "hardware": "PIC_RS485/422_DECODEMP69_57600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHRFC_STPCHR20_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 8,
+   "name": "Varsity",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485/22_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4D"
+    }
+   ]
+  },
+  {
+   "id": 9,
+   "name": "OES",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS232_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY2_STRTCHR02_STPCHR03_INT4C"
+    },
+    {
+     "connection": "Wired Rs422/Rs485",
+     "hardware": "PIC_RS485/22_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY2_STRTCHR04_STPCHR05_INT4D"
+    },
+    {
+     "connection": "Wireless",
+     "hardware": "DIGI_XBEE_VERSION_CHECK_NODECODE_57600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 10,
+   "name": "Bertelle",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485/22_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY5_STRTCHR02_STPCHR03_INT4D"
+    }
+   ]
+  },
+  {
+   "id": 11,
+   "name": "Elak Emk",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485/22_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 12,
+   "name": "Spectrum V2W",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485/22_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY2_STRTCHR02_STPCHR03_INT4C"
+    },
+    {
+     "connection": "Wired Rs232",
+     "hardware": "PIC_RS232_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 13,
+   "name": "Harris Time",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485/22_NODECODE_115200_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    },
+    {
+     "connection": "Wireless",
+     "hardware": "DIGI_XBEE_24GHZ_NODECODE_115200_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY2_STRTCHR02_STPCHR03_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 14,
+   "name": "All American Model 8000",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485/22_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY2_STRTCHR04_STPCHR05_INT4D"
+    },
+    {
+     "connection": "Wireless",
+     "hardware": "LAIRD_XBEE_NODECODE_57600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 15,
+   "name": "Bodet",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS232_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    },
+    {
+     "connection": "UDP (User Datagram Protocol)",
+     "hardware": "UDP",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    },
+    {
+     "connection": "TCP Server",
+     "hardware": "TCP_SERVER",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 16,
+   "name": "Spectrum V2E",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485/22_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY2_STRTCHR02_STPCHR03_INT4C"
+    },
+    {
+     "connection": "Wired Rs232",
+     "hardware": "PIC_RS232_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 17,
+   "name": "Spectrum V2",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485/22_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY2_STRTCHR02_STPCHR03_INT4C"
+    },
+    {
+     "connection": "Wired Rs232",
+     "hardware": "PIC_RS232_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 18,
+   "name": "Daktronics 4000",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_CURRENTLOOP_DECODEDAK4000_57600_INVERTED",
+     "eth_serial": "MODED+F_DELAY2_STRTCHRAA_STPCHRAB_INT4D"
+    }
+   ]
+  },
+  {
+   "id": 19,
+   "name": "Eversan",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485_22_DECODESERIAL_57600_NORMAL",
+     "nonstandard_serial": "621009N2",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR01_STPCHR1D_INT4D"
+    },
+    {
+     "connection": "Wireless",
+     "hardware": "LAIRD_XBEE_NODECODE_57600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    },
+    {
+     "connection": "Wired Legacy ScoreLinkI",
+     "hardware": "PIC_RS485/22_NODECODE_62100_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR01_STPCHR1D_INT4D"
+    }
+   ]
+  },
+  {
+   "id": 20,
+   "name": "Swiss Timing",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485/22_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY8_STRTCHR02_STPCHR04_INT4D"
+    },
+    {
+     "connection": "Inverted",
+     "hardware": "PIC_RS485/22_NODECODE_9600_INVERTED",
+     "eth_serial": "MODEDELAY_DELAY8_STRTCHR02_STPCHR04_INT4D"
+    }
+   ]
+  },
+  {
+   "id": 21,
+   "name": "Tissot",
+   "configs": [
+    {
+     "connection": "Wired Rs422/Rs485",
+     "hardware": "PIC_RS485/22_NODECODE_115200_NORMAL",
+     "read_timeout": "10",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    },
+    {
+     "connection": "Inverted",
+     "hardware": "PIC_RS485/22_NODECODE_115200_INVERTED",
+     "read_timeout": "10",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    },
+    {
+     "connection": "Wired Rs232",
+     "hardware": "PIC_RS232_NODECODE_115200_NORMAL",
+     "read_timeout": "10",
+     "eth_serial": "MODEDELAY_DELAY8_STRTCHR02_STPCHR04_INT4D"
+    }
+   ]
+  },
+  {
+   "id": 22,
+   "name": "Fairplay Proline",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS232_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHRFC_STPCHR20_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 23,
+   "name": "Varsity Gen2",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485/22_NODECODE_115200_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4D"
+    }
+   ]
+  },
+  {
+   "id": 24,
+   "name": "All American Model 3000",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485/22_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    },
+    {
+     "connection": "Wired Slow",
+     "hardware": "PIC_RS485/22_NODECODE_2400_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 25,
+   "name": "Alge Timing CKN",
+   "configs": [
+    {
+     "connection": "Wired Rs232",
+     "hardware": "PIC_RS232_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY1_STRTCHR02_STPCHR04_INT4C"
+    },
+    {
+     "connection": "Wired Rs422/Rs485",
+     "hardware": "PIC_RS485/22_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY1_STRTCHR02_STPCHR04_INT4C"
+    },
+    {
+     "connection": "Wireless ZigBee",
+     "hardware": "SILABS_ZIGBEE_NODECODE_115200_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY1_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 26,
+   "name": "Major Display",
+   "configs": [
+    {
+     "connection": "Wireless",
+     "hardware": "DIGI_XBEE_NODECODE_57600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 27,
+   "name": "Eversan V2",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485_22_DECODESERIAL_57600_NORMAL",
+     "nonstandard_serial": "621009N2",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR01_STPCHR1D_INT4D"
+    },
+    {
+     "connection": "Wireless",
+     "hardware": "LAIRD_XBEE_NODECODE_57600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    },
+    {
+     "connection": "Wired Legacy ScoreLinkI",
+     "hardware": "PIC_RS485/22_NODECODE_62100_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR01_STPCHR1D_INT4D"
+    }
+   ]
+  },
+  {
+   "id": 28,
+   "name": "Mondo",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS232_NODECODE_19200_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY2_STRTCHR02_STPCHR03_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 29,
+   "name": "Cuma",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485/22_NODECODE_19200_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 30,
+   "name": "FarmTek",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS232_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 31,
+   "name": "Nautronic",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485/22_NODECODE_115200_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    },
+    {
+     "connection": "Wireless",
+     "hardware": "SILABS_NODECODE_115200_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    },
+    {
+     "connection": "Wireless ZigBee",
+     "hardware": "SILABS_ZIGBEE_NODECODE_115200_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 32,
+   "name": "Funtronix AutoDetect",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS232_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 33,
+   "name": "Favero",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485_22_DECODESERIAL_57600_NORMAL",
+     "nonstandard_serial": "192009N1",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 34,
+   "name": "Eversan Model 9364",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485_22_DECODESERIAL_57600_NORMAL",
+     "nonstandard_serial": "621009N2",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR01_STPCHR1D_INT4D"
+    },
+    {
+     "connection": "Wired Legacy ScoreLinkI",
+     "hardware": "PIC_RS485/22_NODECODE_62100_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR01_STPCHR1D_INT4D"
+    }
+   ]
+  },
+  {
+   "id": 35,
+   "name": "Eversan Model 9775",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485_22_DECODESERIAL_57600_NORMAL",
+     "nonstandard_serial": "621009N2",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR01_STPCHR1D_INT4D"
+    },
+    {
+     "connection": "Wired Legacy ScoreLinkI",
+     "hardware": "PIC_RS485/22_NODECODE_62100_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR01_STPCHR1D_INT4D"
+    }
+   ]
+  },
+  {
+   "id": 36,
+   "name": "Skorled",
+   "configs": [
+    {
+     "connection": "Wired Rs232",
+     "hardware": "PIC_RS232_NODECODE_115200_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 37,
+   "name": "LGR",
+   "configs": [
+    {
+     "connection": "Wired Rs422/Rs485",
+     "hardware": "PIC_RS485/22_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    },
+    {
+     "connection": "Wired Rs232",
+     "hardware": "PIC_RS232_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 38,
+   "name": "Prospecta",
+   "configs": [
+    {
+     "connection": "Wired Rs232",
+     "hardware": "PIC_RS232_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY1_STRTCHR02_STPCHR04_INT4C"
+    },
+    {
+     "connection": "Wired Rs422/Rs485",
+     "hardware": "PIC_RS485/22_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY1_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 39,
+   "name": "Nisasport TV",
+   "configs": [
+    {
+     "connection": "Wired Rs232",
+     "hardware": "PIC_RS232_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    },
+    {
+     "connection": "Wired Rs422/Rs485",
+     "hardware": "PIC_RS485/22_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 40,
+   "name": "Stramatel",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485/22_NODECODE_19200_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 41,
+   "name": "Swiss Timing TP",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "NO HARDWARE CONFIGURATION",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    },
+    {
+     "connection": "UDP (User Datagram Protocol)",
+     "hardware": "UDP",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 42,
+   "name": "Uno",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485/22_NODECODE_115200_INVERTED",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 43,
+   "name": "Scoretec",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "NO HARDWARE CONFIGURATION",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 44,
+   "name": "PannoneScore",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485/22_NODECODE_38400_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 45,
+   "name": "MacFinish",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "NO HARDWARE CONFIGURATION",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 46,
+   "name": "HamiltonDigital",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "NO HARDWARE CONFIGURATION",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 47,
+   "name": "Daktronics 4000 V2",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "NO HARDWARE CONFIGURATION",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 48,
+   "name": "Colorado Timing",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS232_NODECODE_9600_NORMAL",
+     "read_timeout": "2",
+     "eth_serial": "MODEDELAY_DELAY2_STRTCHR04_STPCHR05_INT4C"
+    },
+    {
+     "connection": "Wired Rs232",
+     "hardware": "PIC_RS232_NODECODE_115200_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 49,
+   "name": "ColoradoTiming V2",
+   "configs": [
+    {
+     "connection": "Wired Rs232",
+     "hardware": "PIC_RS232_NODECODE_115200_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 50,
+   "name": "Compulink",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "NO HARDWARE CONFIGURATION",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 51,
+   "name": "Anatec",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS232_NODECODE_9600_NORMAL",
+     "eth_serial": "MODESTARTEND_DELAY2_STRTCHR0D_STPCHR0A_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 52,
+   "name": "Alge",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "NO HARDWARE CONFIGURATION",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 53,
+   "name": "Virtual Bot",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "NO HARDWARE CONFIGURATION",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 54,
+   "name": "Westerstrand Basic 250",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485/22_NODECODE_115200_NORMAL",
+     "eth_serial": "MODED+F_DELAY2_STRTCHR02_STPCHR03_INT4D"
+    }
+   ]
+  },
+  {
+   "id": 55,
+   "name": "View All",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "NO HARDWARE CONFIGURATION",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    },
+    {
+     "connection": "UDP (User Datagram Protocol)",
+     "hardware": "UDP",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 56,
+   "name": "Fairplay MP70",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485/22_DECODEMP70_57600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHRFC_STPCHR20_INT4D"
+    }
+   ]
+  },
+  {
+   "id": 57,
+   "name": "Nautronic NG 08",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485_22_DECODESERIAL_57600_NORMAL",
+     "nonstandard_serial": "560009N2",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 58,
+   "name": "Westerstrand Basic 200",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485/22_NODECODE_19200_NORMAL",
+     "eth_serial": "MODED+F_DELAY2_STRTCHR02_STPCHR03_INT4D"
+    }
+   ]
+  },
+  {
+   "id": 59,
+   "name": "ESK",
+   "configs": [
+    {
+     "connection": "Wired Rs232",
+     "hardware": "PIC_RS232_NODECODE_19200_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 60,
+   "name": "Atlas Servis CZ",
+   "configs": [
+    {
+     "connection": "Wired Rs422/Rs485",
+     "hardware": "PIC_RS485/22_NODECODE_38400_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    },
+    {
+     "connection": "Wired Rs232",
+     "hardware": "PIC_RS232_NODECODE_38400_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 61,
+   "name": "Blue Vane",
+   "configs": [
+    {
+     "connection": "Wired Rs232",
+     "hardware": "PIC_RS232_NODECODE_4800_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY2_STRTCHR02_STPCHR03_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 62,
+   "name": "ICast",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "NO HARDWARE CONFIGURATION",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 63,
+   "name": "NisaSport",
+   "configs": [
+    {
+     "connection": "Wired Rs422/Rs485",
+     "hardware": "PIC_RS485_22_NODECODE_10000_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY1_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 64,
+   "name": "Spectrum MS250",
+   "configs": []
+  },
+  {
+   "id": 65,
+   "name": "UltraScore",
+   "configs": [
+    {
+     "connection": "UDP (User Datagram Protocol)",
+     "hardware": "UDP",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 66,
+   "name": "Baybor",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485_22_DECODESERIAL_57600_NORMAL",
+     "nonstandard_serial": "192009N1",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 67,
+   "name": "Trackman",
+   "configs": [
+    {
+     "connection": "UDP (User Datagram Protocol)",
+     "hardware": "UDP",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 68,
+   "name": "Stramatel BE04030",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "PIC_RS485/22_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 69,
+   "name": "Colosseo",
+   "configs": [
+    {
+     "connection": "Wired Rs232",
+     "hardware": "PIC_RS232_NODECODE_19200_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    },
+    {
+     "connection": "Wired Rs422/Rs485",
+     "hardware": "PIC_RS485/22_NODECODE_19200_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4D"
+    }
+   ]
+  },
+  {
+   "id": 70,
+   "name": "Quince",
+   "configs": [
+    {
+     "connection": "Wired Rs232",
+     "hardware": "PIC_RS232_NODECODE_19200_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY2_STRTCHR02_STPCHR03_INT4C"
+    },
+    {
+     "connection": "Wired Rs232 19200",
+     "hardware": "PIC_RS232_NODECODE_19200_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 71,
+   "name": "Fujitsu",
+   "configs": [
+    {
+     "connection": "Wired Rs232",
+     "hardware": "PIC_RS232_NODECODE_57600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 72,
+   "name": "Bicen",
+   "configs": [
+    {
+     "connection": "Wired Rs422/Rs485",
+     "hardware": "PIC_RS232_NODECODE_57600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 73,
+   "name": "Grunewald",
+   "configs": [
+    {
+     "connection": "Wired Rs232",
+     "hardware": "PIC_RS232_NODECODE_19200_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY2_STRTCHR02_STPCHR03_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 113,
+   "name": "Harris Time V2",
+   "configs": [
+    {
+     "connection": "Wired Rs232",
+     "hardware": "PIC_RS232_NODECODE_9600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY2_STRTCHR02_STPCHR03_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 140,
+   "name": "All American Model 9000",
+   "configs": [
+    {
+     "connection": "Wireless",
+     "hardware": "LAIRD_XBEE_NODECODE_57600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    },
+    {
+     "connection": "Wired Rs422/Rs485",
+     "hardware": "PIC_RS485/22_NODECODE_115200_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    },
+    {
+     "connection": "Wired Rs232",
+     "hardware": "PIC_RS232_NODECODE_115200_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 150,
+   "name": "FairPlay MP80 Wireless",
+   "configs": [
+    {
+     "connection": "Wireless",
+     "hardware": "DIGI_XBEE_NODECODE_57600_NORMAL",
+     "read_timeout": "50",
+     "eth_serial": "MODEDELAY_DELAY50_STRTCHR02_STPCHR03_INT4D"
+    }
+   ]
+  },
+  {
+   "id": 251,
+   "name": "Anatec Wireless",
+   "configs": [
+    {
+     "connection": "Wireless",
+     "hardware": "WIRELESS_NOCONFIG_NODECODE_9600_NORMAL",
+     "eth_serial": "MODESTARTEND_DELAY2_STRTCHR0D_STPCHR0A_INT4C"
+    }
+   ]
+  }
+ ],
+ "vendor_sports": [
+  {
+   "enum": "SportzcastSBData_Baseball",
+   "vendor": "SportzCastSbData",
+   "description": "Sportzcast SBDATA Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SportzcastSBData_Football",
+   "vendor": "SportzCastSbData",
+   "description": "Sportzcast SBDATA Football",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SportzcastSBData_Basketball",
+   "vendor": "SportzCastSbData",
+   "description": "Sportzcast SBDATA Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SportzcastSBData_Softball",
+   "vendor": "SportzCastSbData",
+   "description": "Sportzcast SBDATA Softball",
+   "event_type": "Softball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SportzcastSBData_Hockey",
+   "vendor": "SportzCastSbData",
+   "description": "Sportzcast SBDATA Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SportzcastSBData_Volleyball",
+   "vendor": "SportzCastSbData",
+   "description": "Sportzcast SBDATA Volleyball",
+   "event_type": "Volleyball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SportzcastSBData_Lacrosse",
+   "vendor": "SportzCastSbData",
+   "description": "Sportzcast SBDATA Lacrosse",
+   "event_type": "Lacrosse",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SportzcastSBData_Soccer",
+   "vendor": "SportzCastSbData",
+   "description": "Sportzcast SBDATA Soccer",
+   "event_type": "Soccer",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SportzcastSBData_Wrestling",
+   "vendor": "SportzCastSbData",
+   "description": "Sportzcast SBDATA Wrestling",
+   "event_type": "Wrestling",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SportzcastSBData_Swimming",
+   "vendor": "SportzCastSbData",
+   "description": "Sportzcast SBDATA Swimming",
+   "event_type": "Swimming",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SportzcastSBData_Tennis",
+   "vendor": "SportzCastSbData",
+   "description": "Sportzcast SBDATA Tennis",
+   "event_type": "Tennis",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SportzcastSBData_Waterpolo",
+   "vendor": "SportzCastSbData",
+   "description": "Sportzcast SBDATA Water Polo",
+   "event_type": "WaterPolo",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SportzcastSBData_Autodetect",
+   "vendor": "SportzCastSbData",
+   "description": "Sportzcast SBDATA Autodetect",
+   "event_type": "AutoDetect",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SportzcastSBData_Generic",
+   "vendor": "SportzCastSbData",
+   "description": "Sportzcast SBDATA Generic",
+   "event_type": "Generic",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SportzcastSBData_Futsal",
+   "vendor": "SportzCastSbData",
+   "description": "Sportzcast SBDATA Futsal",
+   "event_type": "Futsal",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SportzcastSBData_Handball",
+   "vendor": "SportzCastSbData",
+   "description": "Sportzcast SBDATA Handball",
+   "event_type": "Handball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SportzcastSBData_TableTennis",
+   "vendor": "SportzCastSbData",
+   "description": "Sportzcast SBDATA Table Tennis",
+   "event_type": "Table Tennis",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SportzcastSBData_Badminton",
+   "vendor": "SportzCastSbData",
+   "description": "Sportzcast SBDATA Badminton",
+   "event_type": "Badminton",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics_Baseball",
+   "vendor": "Daktronics",
+   "description": "Daktronics Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics_Football",
+   "vendor": "Daktronics",
+   "description": "Daktronics Football",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics_Basketball",
+   "vendor": "Daktronics",
+   "description": "Daktronics Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics_Softball",
+   "vendor": "Daktronics",
+   "description": "Daktronics Softball",
+   "event_type": "Softball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics_Hockey5000",
+   "vendor": "Daktronics",
+   "description": "Daktronics Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics_Wrestling3000",
+   "vendor": "Daktronics",
+   "description": "Daktronics Wrestling",
+   "event_type": "Wrestling",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics_Lacrosse5000",
+   "vendor": "Daktronics",
+   "description": "Daktronics Lacrosse",
+   "event_type": "Lacrosse",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics_Soccer",
+   "vendor": "Daktronics",
+   "description": "Daktronics Soccer",
+   "event_type": "Soccer",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics_Volleyball",
+   "vendor": "Daktronics",
+   "description": "Daktronics Volleyball",
+   "event_type": "Volleyball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics_Autodetect",
+   "vendor": "Daktronics",
+   "description": "Daktronics Auto Detect",
+   "event_type": "AutoDetect",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics_Baseball1600",
+   "vendor": "Daktronics",
+   "description": "Daktronics 1600 Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics_Rodeo2000",
+   "vendor": "Daktronics",
+   "description": "Daktronics 2000 Rodeo",
+   "event_type": "Rodeo",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics_Swimming",
+   "vendor": "Daktronics",
+   "description": "Daktronics Swimming",
+   "event_type": "Swimming",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics_Basketball5500",
+   "vendor": "Daktronics",
+   "description": "Daktronics 5500 Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics_Volleyball5500",
+   "vendor": "Daktronics",
+   "description": "Daktronics 5500 Volleyball",
+   "event_type": "Volleyball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics_Waterpolo2000",
+   "vendor": "Daktronics",
+   "description": "Daktronics 2000 Waterpolo",
+   "event_type": "WaterPolo",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics_JvcPracticeFootball",
+   "vendor": "Daktronics",
+   "description": "Daktronics JVC Practice Football",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics_3000_Football",
+   "vendor": "Daktronics",
+   "description": "Daktronics 3000 Football",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics_Football1600",
+   "vendor": "Daktronics",
+   "description": "Daktronics 1600 Football",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics_Basketball9122",
+   "vendor": "Daktronics",
+   "description": "Daktronics Basketball Code 9122",
+   "event_type": "Basketball",
+   "vendor_sport_code": 9122
+  },
+  {
+   "enum": "Daktronics_Baseball5601",
+   "vendor": "Daktronics",
+   "description": "Daktronics Baseball Code 5601",
+   "event_type": "Baseball",
+   "vendor_sport_code": 5601
+  },
+  {
+   "enum": "Daktronics_Timer8601",
+   "vendor": "Daktronics",
+   "description": "Daktronics Min Sec Timer Code 8601",
+   "event_type": "SingleTimer",
+   "vendor_sport_code": 8601
+  },
+  {
+   "enum": "Daktronics_Hockey5000Code9405",
+   "vendor": "Daktronics",
+   "description": "Daktronics Hockey Code 9405",
+   "event_type": "Hockey",
+   "vendor_sport_code": 9405
+  },
+  {
+   "enum": "Daktronics_3000_Baseball",
+   "vendor": "Daktronics",
+   "description": "Daktronics 3000 Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics_Hockey5000Code4103",
+   "vendor": "Daktronics",
+   "description": "Daktronics Hockey Code 4103",
+   "event_type": "Hockey",
+   "vendor_sport_code": 4103
+  },
+  {
+   "enum": "Daktronics_Lacrosse5000Code4103",
+   "vendor": "Daktronics",
+   "description": "Daktronics Lacrosse Code 4103",
+   "event_type": "Lacrosse",
+   "vendor_sport_code": 4103
+  },
+  {
+   "enum": "Daktronics_BaseBall_Pitch_Speed",
+   "vendor": "Daktronics",
+   "description": "Daktronics Baseball Pitch Speed",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics_FootballCode6103",
+   "vendor": "Daktronics",
+   "description": "Daktronics Football Code 6103",
+   "event_type": "Football",
+   "vendor_sport_code": 6103
+  },
+  {
+   "enum": "Daktronics_Baseball_Pitch_Clock",
+   "vendor": "Daktronics",
+   "description": "Daktronics Baseball Pitch Clock",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Fairplay_Football_Code24",
+   "vendor": "Fairplay",
+   "description": "Fairplay Football Code 24",
+   "event_type": "Football",
+   "vendor_sport_code": 24
+  },
+  {
+   "enum": "Fairplay_Baseball_Code31",
+   "vendor": "Fairplay",
+   "description": "Fairplay Baseball Code 31",
+   "event_type": "Baseball",
+   "vendor_sport_code": 31
+  },
+  {
+   "enum": "Fairplay_Softball_Code31",
+   "vendor": "Fairplay",
+   "description": "Fairplay Softball Code 31",
+   "event_type": "Softball",
+   "vendor_sport_code": 31
+  },
+  {
+   "enum": "Fairplay_Basketball_Code5",
+   "vendor": "Fairplay",
+   "description": "Fairplay Basketball Code 5",
+   "event_type": "Basketball",
+   "vendor_sport_code": 5
+  },
+  {
+   "enum": "Fairplay_Lacrosse",
+   "vendor": "Fairplay",
+   "description": "Fairplay Lacrosse Code 21",
+   "event_type": "Lacrosse",
+   "vendor_sport_code": 21
+  },
+  {
+   "enum": "Fairplay_Soccer_Code22",
+   "vendor": "Fairplay",
+   "description": "Fairplay Soccer Code 22",
+   "event_type": "Soccer",
+   "vendor_sport_code": 22
+  },
+  {
+   "enum": "Fairplay_BaseballSoftball_Code34",
+   "vendor": "Fairplay",
+   "description": "Fairplay Baseball Code 34",
+   "event_type": "Baseball",
+   "vendor_sport_code": 34
+  },
+  {
+   "enum": "Fairplay_BaseballSoftball_Code35",
+   "vendor": "Fairplay",
+   "description": "Fairplay Baseball Code 35",
+   "event_type": "Baseball",
+   "vendor_sport_code": 35
+  },
+  {
+   "enum": "Fairplay_Basketball_Code1",
+   "vendor": "Fairplay",
+   "description": "Fairplay Basketball Code 1",
+   "event_type": "Basketball",
+   "vendor_sport_code": 1
+  },
+  {
+   "enum": "Fairplay_Basketball_Code9",
+   "vendor": "Fairplay",
+   "description": "Fairplay Basketball Code 9",
+   "event_type": "Basketball",
+   "vendor_sport_code": 9
+  },
+  {
+   "enum": "Fairplay_Basketball_Code4",
+   "vendor": "Fairplay",
+   "description": "Fairplay Basketball Code 4",
+   "event_type": "Basketball",
+   "vendor_sport_code": 4
+  },
+  {
+   "enum": "Fairplay_Basketball_Code6",
+   "vendor": "Fairplay",
+   "description": "Fairplay Basketball Code 6",
+   "event_type": "Basketball",
+   "vendor_sport_code": 6
+  },
+  {
+   "enum": "Fairplay_Football_Code23",
+   "vendor": "Fairplay",
+   "description": "Fairplay Football Code 23",
+   "event_type": "Football",
+   "vendor_sport_code": 23
+  },
+  {
+   "enum": "Fairplay_Basketball_Code10",
+   "vendor": "Fairplay",
+   "description": "Fairplay Basketball Code 10",
+   "event_type": "Basketball",
+   "vendor_sport_code": 10
+  },
+  {
+   "enum": "Fairplay_Basketball_Code12",
+   "vendor": "Fairplay",
+   "description": "Fairplay Basketball Code 12",
+   "event_type": "Basketball",
+   "vendor_sport_code": 12
+  },
+  {
+   "enum": "Fairplay_Basketball_Code2",
+   "vendor": "Fairplay",
+   "description": "Fairplay Basketball Code 2",
+   "event_type": "Basketball",
+   "vendor_sport_code": 2
+  },
+  {
+   "enum": "Fairplay_Baseball_Code33",
+   "vendor": "Fairplay",
+   "description": "Fairplay Baseball Code 33",
+   "event_type": "Baseball",
+   "vendor_sport_code": 33
+  },
+  {
+   "enum": "Fairplay_Baseball_Code32",
+   "vendor": "Fairplay",
+   "description": "Fairplay Baseball Code 32",
+   "event_type": "Baseball",
+   "vendor_sport_code": 32
+  },
+  {
+   "enum": "Fairplay_Soccer_Code36",
+   "vendor": "Fairplay",
+   "description": "Fairplay Soccer Code 36",
+   "event_type": "Soccer",
+   "vendor_sport_code": 36
+  },
+  {
+   "enum": "Fairplay_Hockey_Code14",
+   "vendor": "Fairplay",
+   "description": "Fairplay Hockey Code 14",
+   "event_type": "Hockey",
+   "vendor_sport_code": 14
+  },
+  {
+   "enum": "Fairplay_Basketball_Code0",
+   "vendor": "Fairplay",
+   "description": "Fairplay Basketball Code 0",
+   "event_type": "Basketball",
+   "vendor_sport_code": 0
+  },
+  {
+   "enum": "Fairplay_Basketball_Code11",
+   "vendor": "Fairplay",
+   "description": "Fairplay Basketball Code 11",
+   "event_type": "Basketball",
+   "vendor_sport_code": 11
+  },
+  {
+   "enum": "Fairplay_Football_Code25",
+   "vendor": "Fairplay",
+   "description": "Fairplay Football Code 25",
+   "event_type": "Football",
+   "vendor_sport_code": 25
+  },
+  {
+   "enum": "Fairplay_Football_Code26",
+   "vendor": "Fairplay",
+   "description": "Fairplay Football Code 26",
+   "event_type": "Football",
+   "vendor_sport_code": 26
+  },
+  {
+   "enum": "Fairplay_Football_Code27",
+   "vendor": "Fairplay",
+   "description": "Fairplay Football Code 27",
+   "event_type": "Football",
+   "vendor_sport_code": 27
+  },
+  {
+   "enum": "Fairplay_Baseball_Code30",
+   "vendor": "Fairplay",
+   "description": "Fairplay Baseball Code 30",
+   "event_type": "Baseball",
+   "vendor_sport_code": 30
+  },
+  {
+   "enum": "Fairplay_Volleyball_Code4",
+   "vendor": "Fairplay",
+   "description": "Fairplay Volleyball Code 4",
+   "event_type": "Volleyball",
+   "vendor_sport_code": 4
+  },
+  {
+   "enum": "Fairplay_Volleyball_Code0",
+   "vendor": "Fairplay",
+   "description": "Fairplay Volleyball Code 0",
+   "event_type": "Volleyball",
+   "vendor_sport_code": 0
+  },
+  {
+   "enum": "Fairplay_Hockey_code13",
+   "vendor": "Fairplay",
+   "description": "Fairplay Hockey Code 13",
+   "event_type": "Hockey",
+   "vendor_sport_code": 13
+  },
+  {
+   "enum": "PIC55AA_Nevco_Baseball",
+   "vendor": "Nevco",
+   "description": "Nevco Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PIC55AA_Nevco_Football",
+   "vendor": "Nevco",
+   "description": "Nevco Football",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PIC55AA_Nevco_Basketball",
+   "vendor": "Nevco",
+   "description": "Nevco Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PIC55AA_Nevco_Hockey",
+   "vendor": "Nevco",
+   "description": "Nevco Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PIC55AA_Nevco_Soccer",
+   "vendor": "Nevco",
+   "description": "Nevco Soccer",
+   "event_type": "Soccer",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PIC55AA_Nevco_Volleyball",
+   "vendor": "Nevco",
+   "description": "Nevco Volleyball",
+   "event_type": "Volleyball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PIC55AA_Nevco_Football_Code827",
+   "vendor": "Nevco",
+   "description": "Nevco Football Code 827",
+   "event_type": "Football",
+   "vendor_sport_code": 827
+  },
+  {
+   "enum": "PIC55AA_Nevco_Wrestling",
+   "vendor": "Nevco",
+   "description": "Nevco Wrestling",
+   "event_type": "Wrestling",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PIC55AA_Nevco_FootballMPC7",
+   "vendor": "Nevco",
+   "description": "Nevco MPC7 Football",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PIC55AA_Nevco_Soccer_Code761",
+   "vendor": "Nevco",
+   "description": "Nevco Soccer Code 761",
+   "event_type": "Soccer",
+   "vendor_sport_code": 761
+  },
+  {
+   "enum": "PIC55AA_Nevco_Basketball_2745",
+   "vendor": "Nevco",
+   "description": "Nevco Basketball Model 2745",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PIC55AA_Nevco_SimpleBaseball_Code925",
+   "vendor": "Nevco",
+   "description": "Nevco Baseball Code 925",
+   "event_type": "Baseball",
+   "vendor_sport_code": 925
+  },
+  {
+   "enum": "PIC55AA_Nevco_SimpleBaseballMPC7",
+   "vendor": "Nevco",
+   "description": "Nevco MPC7 Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PIC55AA_Nevco_BasketballMPC7",
+   "vendor": "Nevco",
+   "description": "Nevco MPC7 Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PIC55AA_Nevco_VolleyballMPC7",
+   "vendor": "Nevco",
+   "description": "Nevco MPC7 Volleyball",
+   "event_type": "Volleyball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PIC55AA_Nevco_FootballMPC7_Code1",
+   "vendor": "Nevco",
+   "description": "Nevco MPC7 Football Code 1",
+   "event_type": "Football",
+   "vendor_sport_code": 1
+  },
+  {
+   "enum": "PIC55AA_Nevco_SoccerMPCX",
+   "vendor": "Nevco",
+   "description": "Nevco MPCX Soccer",
+   "event_type": "Soccer",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PIC55AA_Nevco_BasketballMPC7_Code1",
+   "vendor": "Nevco",
+   "description": "Nevco MPC7 Basketball Code 1",
+   "event_type": "Basketball",
+   "vendor_sport_code": 1
+  },
+  {
+   "enum": "PIC55AA_Nevco_LacrosseMPC7",
+   "vendor": "Nevco",
+   "description": "Nevco MPC7 Lacrosse",
+   "event_type": "Lacrosse",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PIC55AA_Nevco_SimpleBaseball_Code673",
+   "vendor": "Nevco",
+   "description": "Nevco Baseball Code 673",
+   "event_type": "Baseball",
+   "vendor_sport_code": 673
+  },
+  {
+   "enum": "PIC55AA_Nevco_HandheldBaseball_Code673",
+   "vendor": "Nevco",
+   "description": "Nevco Handheld Baseball Code 673",
+   "event_type": "Baseball",
+   "vendor_sport_code": 673
+  },
+  {
+   "enum": "PIC55AA_Nevco_Baseball_MPCX_Code706",
+   "vendor": "Nevco",
+   "description": "Nevco MPCX Baseball Code 706",
+   "event_type": "Baseball",
+   "vendor_sport_code": 706
+  },
+  {
+   "enum": "PIC55AA_Nevco_HockeyMPC7",
+   "vendor": "Nevco",
+   "description": "Nevco MPC7 Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PIC55AA_Nevco_Baseball_MPCX_code_252",
+   "vendor": "Nevco",
+   "description": "Nevco MPCX Baseball Code 252",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Electromech_Baseball",
+   "vendor": "ElectroMech V2",
+   "description": "Electro-Mech Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Electromech_Football",
+   "vendor": "ElectroMech V2",
+   "description": "Electro-Mech Football",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Electromech_Basketball",
+   "vendor": "ElectroMech V2",
+   "description": "Electro-Mech Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Electromech_Softball",
+   "vendor": "ElectroMech V2",
+   "description": "Electro-Mech Softball",
+   "event_type": "Softball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Electromech_Basketball_SwappedTeams",
+   "vendor": "ElectroMech V2",
+   "description": "Electro-Mech Basketball Swapped Teams",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Electromech_Soccer",
+   "vendor": "ElectroMech V2",
+   "description": "Electro-Mech Soccer",
+   "event_type": "Soccer",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Electromech_LxSoccer",
+   "vendor": "ElectroMech V2",
+   "description": "Electro-Mech LX Soccer",
+   "event_type": "Soccer",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Electromech_LineScoreBaseball",
+   "vendor": "ElectroMech V2",
+   "description": "Electro-Mech LS Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Electromech_LxHockey",
+   "vendor": "ElectroMech V2",
+   "description": "Electro-Mech LX Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Electromech_LxLacrosse",
+   "vendor": "ElectroMech V2",
+   "description": "Electro-Mech LX Lacrosse",
+   "event_type": "Lacrosse",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Electromech_Hockey",
+   "vendor": "ElectroMech V2",
+   "description": "Electro-Mech Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Electromech_Volleyball",
+   "vendor": "ElectroMech V2",
+   "description": "Electro-Mech Volleyball",
+   "event_type": "Volleyball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Electromech_BaseballSoftball14x15x",
+   "vendor": "ElectroMech V2",
+   "description": "Electro-Mech 14X_15X Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Electromech_LxBaseball",
+   "vendor": "ElectroMech V2",
+   "description": "Electro-Mech LX Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "DaktronicsPublic_Baseball",
+   "vendor": "Daktronics Public",
+   "description": "Daktronics Public Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "DaktronicsPublic_Football",
+   "vendor": "Daktronics Public",
+   "description": "Daktronics Public Football",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "DaktronicsPublic_Basketball",
+   "vendor": "Daktronics Public",
+   "description": "Daktronics Public Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "DaktronicsPublic_Softball",
+   "vendor": "Daktronics Public",
+   "description": "Daktronics Public Softball",
+   "event_type": "Softball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "DaktronicsPublic_Hockey",
+   "vendor": "Daktronics Public",
+   "description": "Daktronics Public Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "DaktronicsPublic_Volleyball",
+   "vendor": "Daktronics Public",
+   "description": "Daktronics Public Volleyball",
+   "event_type": "Volleyball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "DaktronicsPublic_Lacrosse",
+   "vendor": "Daktronics Public",
+   "description": "Daktronics Public Lacrosse",
+   "event_type": "Lacrosse",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "DaktronicsPublic_Soccer",
+   "vendor": "Daktronics Public",
+   "description": "Daktronics Public Soccer",
+   "event_type": "Soccer",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "DaktronicsPublic_Swimming",
+   "vendor": "Daktronics Public",
+   "description": "Daktronics Public Swimming",
+   "event_type": "Swimming",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "DaktronicsPublic_Rodeo",
+   "vendor": "Daktronics Public",
+   "description": "Daktronics 2000 Public Rodeo",
+   "event_type": "Rodeo",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "DaktronicsAllSportsCG_Football",
+   "vendor": "Daktronics AllSport CG",
+   "description": "Daktronics AllSport CG Football",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "DaktronicsAllSportsCG_Basketball",
+   "vendor": "Daktronics AllSport CG",
+   "description": "Daktronics AllSport CG Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "DaktronicsAllSportsCG_Baseball",
+   "vendor": "Daktronics AllSport CG",
+   "description": "Daktronics AllSport CG Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "DaktronicsAllSportsCG_Hockey",
+   "vendor": "Daktronics AllSport CG",
+   "description": "Daktronics AllSport CG Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "DaktronicsAllSportsCG_Volleyball",
+   "vendor": "Daktronics AllSport CG",
+   "description": "Daktronics AllSport CG Volleyball",
+   "event_type": "Volleyball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "DaktronicsAllSportsCG_Wrestling",
+   "vendor": "Daktronics AllSport CG",
+   "description": "Daktronics AllSport CG Wrestling",
+   "event_type": "Wrestling",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "DaktronicsAllSportsCG_BasketballUNCG",
+   "vendor": "Daktronics AllSport CG",
+   "description": "Daktronics AllSport CG (UNCG) Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PIC55AA_FairplayMP69_Basketball_Code0",
+   "vendor": "Fairplay MP69",
+   "description": "Fairplay MP69 Basketball Code 0",
+   "event_type": "Basketball",
+   "vendor_sport_code": 0
+  },
+  {
+   "enum": "PIC55AA_FairplayMP69_Basketball_Code42",
+   "vendor": "Fairplay MP69",
+   "description": "Fairplay MP69 Basketball Code 42",
+   "event_type": "Basketball",
+   "vendor_sport_code": 42
+  },
+  {
+   "enum": "PIC55AA_FairplayMP69_Baseball",
+   "vendor": "Fairplay MP69",
+   "description": "Fairplay MP69 Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PIC55AA_FairplayMP69_Football",
+   "vendor": "Fairplay MP69",
+   "description": "Fairplay MP69 Football",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Varsity_Baseball",
+   "vendor": "Varsity",
+   "description": "Varsity Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Varsity_Basketball",
+   "vendor": "Varsity",
+   "description": "Varsity Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Varsity_Soccer",
+   "vendor": "Varsity",
+   "description": "Varsity Soccer",
+   "event_type": "Soccer",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "OES_Baseball_Code50",
+   "vendor": "OES",
+   "description": "OES Baseball Code 50",
+   "event_type": "Baseball",
+   "vendor_sport_code": 1
+  },
+  {
+   "enum": "OES_HockeyStandard",
+   "vendor": "OES",
+   "description": "OES Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "OES_Football",
+   "vendor": "OES",
+   "description": "OES Football",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "OES_Baseball_Code53",
+   "vendor": "OES",
+   "description": "OES Baseball Code 53",
+   "event_type": "Baseball",
+   "vendor_sport_code": 2
+  },
+  {
+   "enum": "OES_Basketball",
+   "vendor": "OES",
+   "description": "OES Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "OES_Baseball_Code85",
+   "vendor": "OES",
+   "description": "OES Baseball Code 85",
+   "event_type": "Baseball",
+   "vendor_sport_code": 3
+  },
+  {
+   "enum": "OES_BaseballStandard",
+   "vendor": "OES",
+   "description": "OES Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": 4
+  },
+  {
+   "enum": "OES_SoccerPro",
+   "vendor": "OES",
+   "description": "OES Soccer Code 1",
+   "event_type": "Soccer",
+   "vendor_sport_code": 1
+  },
+  {
+   "enum": "OES_Lacrosse",
+   "vendor": "OES",
+   "description": "OES Lacrosse",
+   "event_type": "Lacrosse",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "OES_HockeyPro",
+   "vendor": "OES",
+   "description": "OES Pro Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "OES_BaseballPro",
+   "vendor": "OES",
+   "description": "OES Baseball Pro",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "OES_BaseballISC85X",
+   "vendor": "OES",
+   "description": "OES ISC85X Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "OES_FootballWireless",
+   "vendor": "OES",
+   "description": "OES Wireless Football",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "OES_AutoDetect",
+   "vendor": "OES",
+   "description": "OES Autodetect Auto Detect",
+   "event_type": "AutoDetect",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "OES_ShortHockeyStandard",
+   "vendor": "OES",
+   "description": "OES Standard Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "OES_Volleyball",
+   "vendor": "OES",
+   "description": "OES Volleyball",
+   "event_type": "Volleyball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "OES_Wrestling",
+   "vendor": "OES",
+   "description": "OES Wrestling",
+   "event_type": "Wrestling",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "OES_Hockey_ISC85X",
+   "vendor": "OES",
+   "description": "OES ISC85X Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "OES_Basketball_Tissot_Adapter",
+   "vendor": "OES",
+   "description": "OES Tissot Adapter Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "OES_Volleyball_Pro",
+   "vendor": "OES",
+   "description": "OES Pro Volleyball",
+   "event_type": "Volleyball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Bertelle_Basketball",
+   "vendor": "Bertelle",
+   "description": "Bertelle Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "ElakEmk_Basketball",
+   "vendor": "Elak Emk",
+   "description": "Elak Emk Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SpectrumV2W_Basketball",
+   "vendor": "Spectrum V2W",
+   "description": "Spectrum V2W Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SpectrumV2W_Football",
+   "vendor": "Spectrum V2W",
+   "description": "Spectrum V2W Football",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SpectrumV2W_Soccer",
+   "vendor": "Spectrum V2W",
+   "description": "Spectrum V2W Soccer",
+   "event_type": "Soccer",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SpectrumV2W_Volleyball",
+   "vendor": "Spectrum V2W",
+   "description": "Spectrum V2W Volleyball",
+   "event_type": "Volleyball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SpectrumV2W_Baseball",
+   "vendor": "Spectrum V2W",
+   "description": "Spectrum V2W Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "HarrisTime_Basketball",
+   "vendor": "Harris Time",
+   "description": "Harris Time CTL2K Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "HarrisTime_Hockey",
+   "vendor": "Harris Time",
+   "description": "Harris Time CTL2K Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "AllAmerican_Basketeball",
+   "vendor": "All American Model 8000",
+   "description": "All American Model 8000 Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "AllAmerican_Baseball",
+   "vendor": "All American Model 8000",
+   "description": "All American Model 8000 Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "AllAmerican_Football",
+   "vendor": "All American Model 8000",
+   "description": "All American Model 8000 Football",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "AllAmerican_Hockey",
+   "vendor": "All American Model 8000",
+   "description": "All American Model 8000 Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "AllAmerican_Volleyball",
+   "vendor": "All American Model 8000",
+   "description": "All American Model 8000 Volleyball",
+   "event_type": "Volleyball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "AllAmerican_Soccer",
+   "vendor": "All American Model 8000",
+   "description": "All American Model 8000 Soccer",
+   "event_type": "Soccer",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Bodet_Basketball",
+   "vendor": "Bodet",
+   "description": "Bodet Basketball",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Bodet_Volleyball",
+   "vendor": "Bodet",
+   "description": "Bodet Volleyball",
+   "event_type": "Volleyball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SpectrumV2E_Football",
+   "vendor": "Spectrum V2E",
+   "description": "Spectrum V2E Football",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SpectrumV2E_Soccer",
+   "vendor": "Spectrum V2E",
+   "description": "Spectrum V2E Soccer",
+   "event_type": "Soccer",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SpectrumV2E_Basketball",
+   "vendor": "Spectrum V2E",
+   "description": "Spectrum V2E Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SpectrumMSX_Hockey",
+   "vendor": "Spectrum V2E",
+   "description": "Spectrum MSX Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SpectrumV2E_Baseball",
+   "vendor": "Spectrum V2E",
+   "description": "Spectrum V2E Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SpectrumV2_Basketball",
+   "vendor": "Spectrum V2",
+   "description": "Spectrum V2 Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PIC55AA_Daktronics4000_Hockey",
+   "vendor": "Daktronics 4000",
+   "description": "Daktronics 4000 Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PIC55AA_Daktronics4000_BaseballSoftball",
+   "vendor": "Daktronics 4000",
+   "description": "Daktronics 4000 Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PIC55AA_Daktronics4000_Football",
+   "vendor": "Daktronics 4000",
+   "description": "Daktronics 4000 Football Code 22",
+   "event_type": "Football",
+   "vendor_sport_code": 22
+  },
+  {
+   "enum": "PIC55AA_Daktronics4000_Basketball",
+   "vendor": "Daktronics 4000",
+   "description": "Daktronics 4000 Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PIC55AA_Daktronics4000_Volleyball",
+   "vendor": "Daktronics 4000",
+   "description": "Daktronics 4000 Volleyball",
+   "event_type": "Volleyball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PIC55AA_Daktronics4000_Soccer",
+   "vendor": "Daktronics 4000",
+   "description": "Daktronics 4000 Soccer",
+   "event_type": "Soccer",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PIC55AA_Daktronics4000_Football_Code27",
+   "vendor": "Daktronics 4000",
+   "description": "Daktronics 4000 Football Code 27",
+   "event_type": "Football",
+   "vendor_sport_code": 27
+  },
+  {
+   "enum": "Eversan_Basketball_Code25",
+   "vendor": "Eversan",
+   "description": "Eversan Basketball Code 25",
+   "event_type": "Basketball",
+   "vendor_sport_code": 25
+  },
+  {
+   "enum": "Eversan_Basketball_Code29",
+   "vendor": "Eversan",
+   "description": "Eversan Basketball Code 29",
+   "event_type": "Basketball",
+   "vendor_sport_code": 29
+  },
+  {
+   "enum": "Eversan_Lacrosse_Code15",
+   "vendor": "Eversan",
+   "description": "Eversan Lacrosse Code 15",
+   "event_type": "Lacrosse",
+   "vendor_sport_code": 15
+  },
+  {
+   "enum": "Eversan_Soccer_Code15",
+   "vendor": "Eversan",
+   "description": "Eversan Soccer Code 15",
+   "event_type": "Soccer",
+   "vendor_sport_code": 15
+  },
+  {
+   "enum": "Eversan_Football",
+   "vendor": "Eversan",
+   "description": "Eversan Football",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SwissTiming_Hockey",
+   "vendor": "Swiss Timing",
+   "description": "Swiss Timing Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SwissTiming_Basketball",
+   "vendor": "Swiss Timing",
+   "description": "Swiss Timing Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SwissTiming_WaterPolo",
+   "vendor": "Swiss Timing",
+   "description": "Swiss Timing Water Polo",
+   "event_type": "WaterPolo",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Tissot_Basketball",
+   "vendor": "Tissot",
+   "description": "Tissot Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "FairplayProline_Basketball",
+   "vendor": "Fairplay Proline",
+   "description": "Fairplay Proline Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "FairplayProline_Baseball",
+   "vendor": "Fairplay Proline",
+   "description": "Fairplay Proline Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "FairplayProline_Football",
+   "vendor": "Fairplay Proline",
+   "description": "Fairplay Proline Football",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "FairplayProline_Soccer",
+   "vendor": "Fairplay Proline",
+   "description": "Fairplay Proline Soccer",
+   "event_type": "Soccer",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "FairplayProline_Lacrosse",
+   "vendor": "Fairplay Proline",
+   "description": "Fairplay Proline Lacrosse",
+   "event_type": "Lacrosse",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "FairplayProline_Volleyball",
+   "vendor": "Fairplay Proline",
+   "description": "Fairplay Proline Volleyball",
+   "event_type": "Volleyball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "FairplayProline_Hockey",
+   "vendor": "Fairplay Proline",
+   "description": "Fairplay Proline Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "VarsityGen2_Hockey",
+   "vendor": "Varsity Gen2",
+   "description": "Varsity Gen2 Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "VarsityGen2_Volleyball",
+   "vendor": "Varsity Gen2",
+   "description": "Varsity Gen2 Volleyball",
+   "event_type": "Volleyball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "VarsityGen2_Soccer",
+   "vendor": "Varsity Gen2",
+   "description": "Varsity Gen2 Soccer",
+   "event_type": "Soccer",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "VarsityGen2_Football",
+   "vendor": "Varsity Gen2",
+   "description": "Varsity Gen2 Football",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "VarsityGen2_Baseball",
+   "vendor": "Varsity Gen2",
+   "description": "Varsity Gen2 Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "VarsityGen2_Basketball",
+   "vendor": "Varsity Gen2",
+   "description": "Varsity Gen2 Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "AllAmerican3000_Football",
+   "vendor": "All American Model 3000",
+   "description": "All American Model 3000 Football",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "AlgeTimingCKN_V1_Basketball",
+   "vendor": "Alge Timing CKN",
+   "description": "Alge Timing CKN V1 Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "AlgeTimingCKN_V2_Basketball",
+   "vendor": "Alge Timing CKN",
+   "description": "Alge Timing CKN V2 Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "MajorDisplay_Baseball",
+   "vendor": "Major Display",
+   "description": "Major Display Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "EversanV2_Lacrosse_Code135",
+   "vendor": "Eversan V2",
+   "description": "Eversan V2 Lacrosse Code 135",
+   "event_type": "Lacrosse",
+   "vendor_sport_code": 135
+  },
+  {
+   "enum": "EversanV2_Soccer_Code135",
+   "vendor": "Eversan V2",
+   "description": "Eversan V2 Soccer Code 135",
+   "event_type": "Soccer",
+   "vendor_sport_code": 135
+  },
+  {
+   "enum": "EversanV2_Football",
+   "vendor": "Eversan V2",
+   "description": "Eversan V2 Football",
+   "event_type": "Football",
+   "vendor_sport_code": 129
+  },
+  {
+   "enum": "EversanV2_Football_Code111",
+   "vendor": "Eversan V2",
+   "description": "Eversan V2 Football Code 111",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "EversanV2_Basketball",
+   "vendor": "Eversan V2",
+   "description": "Eversan V2 Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": 129
+  },
+  {
+   "enum": "EversanV2_Baseball_Code135",
+   "vendor": "Eversan V2",
+   "description": "Eversan V2 Baseball Code 135",
+   "event_type": "Baseball",
+   "vendor_sport_code": 135
+  },
+  {
+   "enum": "EversanV2_Hockey_Code131",
+   "vendor": "Eversan V2",
+   "description": "Eversan V2 Hockey Code 131",
+   "event_type": "Hockey",
+   "vendor_sport_code": 131
+  },
+  {
+   "enum": "EversanV2_Baseball_Code70",
+   "vendor": "Eversan V2",
+   "description": "Eversan V2 Baseball Code 70",
+   "event_type": "Baseball",
+   "vendor_sport_code": 70
+  },
+  {
+   "enum": "Mondo_Basketball",
+   "vendor": "Mondo",
+   "description": "Mondo Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Cuma_Basketball",
+   "vendor": "Cuma",
+   "description": "Cuma Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Farmtek_Timing",
+   "vendor": "FarmTek",
+   "description": "FarmTek Timer",
+   "event_type": "Timer",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Nautronic_Hockey",
+   "vendor": "Nautronic",
+   "description": "Nautronic Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": 113
+  },
+  {
+   "enum": "Nautronic_Basketball",
+   "vendor": "Nautronic",
+   "description": "Nautronic Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Funtronix_Autodetect",
+   "vendor": "Funtronix AutoDetect",
+   "description": "Funtronix Auto Detect",
+   "event_type": "AutoDetect",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Favero_Basketball",
+   "vendor": "Favero",
+   "description": "Favero Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "EversanModel9364_Lacrosse",
+   "vendor": "Eversan Model 9364",
+   "description": "Eversan Model 9364 Lacrosse",
+   "event_type": "Lacrosse",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "EversanModel9364_Football",
+   "vendor": "Eversan Model 9364",
+   "description": "Eversan Model 9364 Football",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "EversanModel9775_Hockey",
+   "vendor": "Eversan Model 9775",
+   "description": "Eversan Model 9775 Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Skorled_Basketball",
+   "vendor": "Skorled",
+   "description": "Skorled Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "LGR_Basketball",
+   "vendor": "LGR",
+   "description": "LGR Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Prospecta_Basketball",
+   "vendor": "Prospecta",
+   "description": "Prospecta Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "NisasportTv_Basketball",
+   "vendor": "Nisasport TV",
+   "description": "Nisasport TV Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Stramatel_Hockey",
+   "vendor": "Stramatel",
+   "description": "Stramatel Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Stramatel_IceHockey",
+   "vendor": "Stramatel",
+   "description": "Stramatel Ice Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Stramatel_Hockey452",
+   "vendor": "Stramatel",
+   "description": "Stramatel Hockey Model 452",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Stramatel_Volleyball",
+   "vendor": "Stramatel",
+   "description": "Stramatel Volleyball",
+   "event_type": "Volleyball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Stramatel_Tennis",
+   "vendor": "Stramatel",
+   "description": "Stramatel Tennis",
+   "event_type": "Tennis",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Stramatel_Basketball",
+   "vendor": "Stramatel",
+   "description": "Stramatel Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Stramatel_Futsal",
+   "vendor": "Stramatel",
+   "description": "Stramatel Futsal",
+   "event_type": "Futsal",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Stramatel_RinkHockey",
+   "vendor": "Stramatel",
+   "description": "Stramatel Rink Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Stramatel_HandBall",
+   "vendor": "Stramatel",
+   "description": "Stramatel handball",
+   "event_type": "Handball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Stramatel_TableTennis",
+   "vendor": "Stramatel",
+   "description": "Stramatel Table Tennis",
+   "event_type": "Table Tennis",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Stramatel_Badminton",
+   "vendor": "Stramatel",
+   "description": "Stramatel Badminton",
+   "event_type": "Badminton",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SwissTimingTransmission_Swimming",
+   "vendor": "Swiss Timing TP",
+   "description": "Swiss Timing TP Swimming",
+   "event_type": "Swimming",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SwissTimmingTransmission_Basketball",
+   "vendor": "Swiss Timing TP",
+   "description": "Swiss Timing STBP Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Uno_Generic",
+   "vendor": "Uno",
+   "description": "Uno Generic",
+   "event_type": "Generic",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Uno_Basketball",
+   "vendor": "Uno",
+   "description": "Uno Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "ScoreTec_Basketball",
+   "vendor": "Scoretec",
+   "description": "Scoretec Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PannoneScore_Autodetect",
+   "vendor": "PannoneScore",
+   "description": "PannoneScore Auto Detect",
+   "event_type": "AutoDetect",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "MacFinish_Basketball",
+   "vendor": "MacFinish",
+   "description": "MacFinish Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "HamiltonDigital_Hockey",
+   "vendor": "HamiltonDigital",
+   "description": "Hamilton Digital Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics4000_Basketball_Code3",
+   "vendor": "Daktronics 4000 V2",
+   "description": "Daktronics 4000 V2 Basketball Code 3",
+   "event_type": "Basketball",
+   "vendor_sport_code": 3
+  },
+  {
+   "enum": "Daktronics4000_Basketball_Code4",
+   "vendor": "Daktronics 4000 V2",
+   "description": "Daktronics 4000 V2 Basketball Code 4",
+   "event_type": "Basketball",
+   "vendor_sport_code": 4
+  },
+  {
+   "enum": "Daktronics4000_BaseballSoftball",
+   "vendor": "Daktronics 4000 V2",
+   "description": "Daktronics 4000 V2 Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics4000_Hockey",
+   "vendor": "Daktronics 4000 V2",
+   "description": "Daktronics 4000 V2 Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics4000_Football",
+   "vendor": "Daktronics 4000 V2",
+   "description": "Daktronics 4000 V2 Football",
+   "event_type": "Football",
+   "vendor_sport_code": 22
+  },
+  {
+   "enum": "Daktronics4000_Football_Code27",
+   "vendor": "Daktronics 4000 V2",
+   "description": "Daktronics 4000 V2 Football Code 27",
+   "event_type": "Football",
+   "vendor_sport_code": 27
+  },
+  {
+   "enum": "Daktronics4000_Volleyball",
+   "vendor": "Daktronics 4000 V2",
+   "description": "Daktronics 4000 V2 Volleyball",
+   "event_type": "Volleyball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Daktronics4000_Soccer",
+   "vendor": "Daktronics 4000 V2",
+   "description": "Daktronics 4000 V2 Soccer",
+   "event_type": "Soccer",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "ColoradoTiming_Waterpolo",
+   "vendor": "Colorado Timing",
+   "description": "Colorado Timing Water Polo",
+   "event_type": "WaterPolo",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "ColoradoTiming_Swimming",
+   "vendor": "Colorado Timing",
+   "description": "Colorado Timing Swimming",
+   "event_type": "Swimming",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "ColoradoTimingV2_Waterpolo",
+   "vendor": "ColoradoTiming V2",
+   "description": "Colorado Timing V2 Water Polo",
+   "event_type": "WaterPolo",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "ColoradoTimingV2_Swimming",
+   "vendor": "ColoradoTiming V2",
+   "description": "Colorado Timing V2 Swimming",
+   "event_type": "Swimming",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Compulink_DragRacing",
+   "vendor": "Compulink",
+   "description": "Compulink Drag Racing",
+   "event_type": "DragRacing",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Compulink_DragRacingDetail",
+   "vendor": "Compulink",
+   "description": "Compulink Drag Racing Detail",
+   "event_type": "DragRacing",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Anatec_Baseball",
+   "vendor": "Anatec",
+   "description": "Anatec Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Anatec_Basketball",
+   "vendor": "Anatec",
+   "description": "Anatec Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Alge_Timing",
+   "vendor": "Alge",
+   "description": "Alge Timing",
+   "event_type": "Timing",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Sportzcast_VirtualBot",
+   "vendor": "Virtual Bot",
+   "description": "Sportzcast Virtual BOT Auto Detect",
+   "event_type": "AutoDetect",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Westerstrand_Basketball",
+   "vendor": "Westerstrand Basic 250",
+   "description": "Westerstrand Basic 250 Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "ViewAll_Basketball",
+   "vendor": "View All",
+   "description": "View All Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "PIC55AA_FairplayMP70_AutoDetect",
+   "vendor": "Fairplay MP70",
+   "description": "Fairplay MP70 Auto Detect",
+   "event_type": "AutoDetect",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "NautronicNg08_Basketball",
+   "vendor": "Nautronic NG 08",
+   "description": "Nautronic NG 08 Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "NautronicNTPult_Basketball",
+   "vendor": "Nautronic NG 08",
+   "description": "Nautronic NT Pult Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Westerstrand200_basketball",
+   "vendor": "Westerstrand Basic 200",
+   "description": "Westerstrand Basic 200 Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "ESK_Basketball",
+   "vendor": "ESK",
+   "description": "Esk Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "AtlasServisCZ_Basketball",
+   "vendor": "Atlas Servis CZ",
+   "description": "Atlas Servis CZ Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "BlueVane_Basketball",
+   "vendor": "Blue Vane",
+   "description": "Blue Vane Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "BlueVane_Basketball_SwappedTeamsInfo",
+   "vendor": "Blue Vane",
+   "description": "Blue Vane BasketBall Swapped Teams",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "ICast_Basketball",
+   "vendor": "ICast",
+   "description": "ICast Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Nisasport_Basketball",
+   "vendor": "NisaSport",
+   "description": "Nisasport Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SpectrumMS250_Baseball",
+   "vendor": "Spectrum MS250",
+   "description": "SSpectrum MS250 Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "UltraScore",
+   "vendor": "UltraScore",
+   "description": "UltraScore Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Baybor_Basketball",
+   "vendor": "Baybor",
+   "description": "Baybor Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Trackman_BaseballPitchSpeed",
+   "vendor": "Trackman",
+   "description": "Trackman Baseball Pitch Speed",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Stramatel_IceHockeyBE04030",
+   "vendor": "Stramatel BE04030",
+   "description": "Stramatel Ice Hockey Model BE04030",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Stramatel_BasketballBE04030",
+   "vendor": "Stramatel BE04030",
+   "description": "Stramatel Basketball Model BE04030",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Colosseo_basketball",
+   "vendor": "Colosseo",
+   "description": "Colosseo Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Quince_Basketball",
+   "vendor": "Quince",
+   "description": "Quince Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Fujitsu_Basketball",
+   "vendor": "Fujitsu",
+   "description": "Fujitsu Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Bicen_Basketball",
+   "vendor": "Bicen",
+   "description": "Bicen Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Grunewald_basketball",
+   "vendor": "Grunewald",
+   "description": "Grunewald Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "HarrisTimeV2_Hockey",
+   "vendor": "Harris Time V2",
+   "description": "Harris Time V2 Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "AllAmerican9000_Football",
+   "vendor": "All American Model 9000",
+   "description": "All American Model 9000 Football",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "AllAmerican9000_Baskteball",
+   "vendor": "All American Model 9000",
+   "description": "All American Model 9000 Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "AllAmerican9000_Hockey",
+   "vendor": "All American Model 9000",
+   "description": "All American Model 9000 Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "FairplayMP80_Baseball",
+   "vendor": "FairPlay MP80 Wireless",
+   "description": "Fairplay MP80 Wireless Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "FairplayMP80_Football",
+   "vendor": "FairPlay MP80 Wireless",
+   "description": "Fairplay MP80 Wireless Football",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "FairplayMP80_Basketball",
+   "vendor": "FairPlay MP80 Wireless",
+   "description": "Fairplay MP80 Wireless Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "FairplayMP80_Soccer",
+   "vendor": "FairPlay MP80 Wireless",
+   "description": "Fairplay MP80 Wireless Soccer",
+   "event_type": "Soccer",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "FairplayMP80_Hockey",
+   "vendor": "FairPlay MP80 Wireless",
+   "description": "Fairplay MP80 Wireless Hockey",
+   "event_type": "Hockey",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "FairPlayMP70_BaseBallInLine",
+   "vendor": "FairPlay MP80 Wireless",
+   "description": "Fairplay MP70 Wireless Inline Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "FairPlayMP80_Volleyball",
+   "vendor": "FairPlay MP80 Wireless",
+   "description": "Fairplay MP80 Wireless Volleyball",
+   "event_type": "Volleyball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Anatec_Wireless_Basketball",
+   "vendor": "Anatec Wireless",
+   "description": "Anatec Wireless Basketball",
+   "event_type": "Football",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Anatec_Wireless_Baseball",
+   "vendor": "Anatec Wireless",
+   "description": "Anatec Wireless Baseball",
+   "event_type": "Baseball",
+   "vendor_sport_code": null
+  }
+ ]
+}

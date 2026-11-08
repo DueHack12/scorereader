@@ -1,0 +1,211 @@
+"""ScoreReader + the multi-vendor scoreboards package."""
+import json
+import random
+
+import pytest
+
+import scoreboards
+import scorereader as sr
+import sportzcast_mqtt as sm
+from scoreboards import hardware
+from scoreboards.pic55aa import CODE_NEVCO, make_frame
+
+
+@pytest.fixture
+def paths(tmp_path, monkeypatch):
+    monkeypatch.setattr(sr, "CONFIG_PATH", str(tmp_path / "scorereader_config.json"))
+    monkeypatch.setattr(sr, "STATE_PATH", str(tmp_path / "state.bin"))
+    monkeypatch.setattr(sr, "LOG_DIR", str(tmp_path / "logs"))
+    return tmp_path
+
+
+def make_app(protocol="", **over):
+    saved = sr.deep_merge(sr.DEFAULT_CONFIG, {"mqtt": {"enabled": False}, "scoreboard": {"protocol": protocol}, **over})
+    return sr.App(json.loads(json.dumps(saved)), saved=saved)
+
+
+def test_every_catalog_layout_with_a_scoreconnect_decoder_is_implemented():
+    impl = scoreboards.protocols()
+    assert not scoreboards.load_errors()
+    missing = {r["enum"] for r in scoreboards.catalog()["vendor_sports"]} - set(impl)
+    assert missing <= {"SportzcastSBData_Generic"}  # a database row ScoreConnect has no decoder for either
+
+
+def test_every_protocol_survives_random_bytes_and_maps_to_output():
+    rnd = random.Random(7)
+    for pid in sorted(scoreboards.protocols()):
+        p = scoreboards.create(pid)
+        for _ in range(20):
+            p.feed(bytes(rnd.randrange(256) for _ in range(rnd.randrange(1, 120))))
+        d = sr.contract_to_data(p.contract_name, p.snapshot())
+        assert isinstance(d, dict), pid
+
+
+def test_builtin_path_is_unchanged_when_no_brand_is_chosen(paths):
+    app = make_app()
+    assert app.vendor is None and app.bot_plan() == {}
+    assert app.reader.vendor is None
+
+
+def test_brand_decoder_feeds_outputs(paths):
+    app = make_app("PIC55AA_Nevco_Basketball", teams={"home_name": "EAGLES"})
+    assert app.vendor is not None and app.reader.vendor is app.vendor
+    app.reader._feed(b"\x00garbage" + make_frame(CODE_NEVCO, bytes(40)))
+    d = app.build_data()
+    assert d["protocol"] == "PIC55AA_Nevco_Basketball" and d["home_name"] == "EAGLES"
+    assert app.state_json()["contract"][0]["v"] == app.vendor.contract_name
+
+
+def test_bot_plan_for_daktronics_matches_the_known_working_setup(paths):
+    app = make_app("Daktronics_Football")
+    plan = app.bot_plan()
+    assert plan["commands"] == [">M0X0X", ">T0", ">D0", ">M8I1N"] and plan["baud"] == 19200
+    assert plan["configure"] is True
+    plan["on_configured"]()
+    assert make_app("Daktronics_Football", scorelink=app.saved["scorelink"]).bot_plan()["configure"] is False
+
+
+def test_bot_plan_follows_the_wiring_choice(paths):
+    configs = hardware.configs_for_vendor("Daktronics")
+    assert len(configs) >= 2
+    app = make_app("Daktronics_Football", scoreboard={"protocol": "Daktronics_Football", "connection": 1})
+    assert configs[1]["connection"] in app.bot_plan()["label"]
+
+
+def test_scoreboard_setting_validated_and_restarts_source(paths):
+    app = make_app()
+    assert not app.apply_settings({"scoreboard.protocol": "Nope_Basketball"})["ok"]
+    assert app.apply_settings({"scoreboard.protocol": "OES_Basketball"})["ok"]
+    assert app.vendor is not None and app.reader.vendor is app.vendor
+    assert app.apply_settings({"scoreboard.protocol": ""})["ok"] and app.vendor is None
+
+
+def test_settings_json_lists_brands(paths):
+    s = make_app().settings_json()
+    names = {b["name"] for b in s["scoreboards"]}
+    assert {"Daktronics", "Nevco", "Fairplay", "OES"} <= names
+    nevco = next(b for b in s["scoreboards"] if b["name"] == "Nevco")
+    assert any(x["id"] == "PIC55AA_Nevco_Basketball" for x in nevco["sports"])
+
+
+def test_scorelink_session_sends_brand_commands_with_retries():
+    sent = []
+
+    class Ser:
+        baudrate = 0
+
+        def __init__(self):
+            self.out = b""
+
+        def reset_input_buffer(self):
+            pass
+
+        def write(self, b):
+            q = b.decode().strip()
+            sent.append(q)
+            if q == ">T?" and sent.count(">T?") == 2:  # 1st is the probe
+                self.out = b"\r"  # first read-back of >T0 fails -> must retry
+            elif q.endswith("?"):
+                self.out = ({">M?": ">M0X0X", ">M8?": ">M8I1N"}.get(q, q[:2] + "0")).encode() + b"\r"
+            else:
+                self.out = b"\r"
+
+        def flush(self):
+            pass
+
+        def read(self, n):
+            c, self.out = self.out[:1], self.out[1:]
+            return c
+
+    class Mcp:
+        def set_gp2(self, v):
+            pass
+
+    cfg = sr.deep_merge(sr.DEFAULT_CONFIG, {})
+    ser = Ser()
+    info = sr.scorelink_session(cfg, ser, Mcp(), True, False, commands=[">M0X0X", ">T0", ">D0", ">M8I1N"], data_baud=19200)
+    writes = [c for c in sent if not c.endswith("?")]
+    assert writes == [">M0X0X", ">T0", ">T0", ">D0", ">M8I1N"]
+    assert info["configured"] is True and ser.baudrate == 19200
+
+
+def test_mqtt_uses_contract_payloads_for_brand_decoders(paths):
+    app = make_app("PIC55AA_Nevco_Basketball")
+    app.reader._feed(make_frame(CODE_NEVCO, bytes(40)))
+    out = sm.SportzcastMqttOutput(sr.deep_merge(sr.DEFAULT_CONFIG, {"mqtt": {"bot_number": 3}}))
+    js, sb = out._payloads(app.build_data(), app.vendor_contract())
+    assert len(sb) == 150 and json.loads(js)["BotNumber"] == 3
+
+
+# ---- fields follow the sport ------------------------------------------------------------------------------------
+FOOTBALL_ONLY = {"down", "to_go", "ball_on", "down_distance", "play_clock"}
+
+
+def test_rtd_basketball_has_no_football_fields_and_publishes_basketball(paths):
+    app = make_app(sport="basketball")
+    app.decoder.feed(sr.encode_rtd_packet(0, " 4:32") + sr.encode_rtd_packet(107, "  14  21"))
+    d = app.build_data()
+    assert d["sport"] == "basketball" and not FOOTBALL_ONLY & set(d)
+    assert {"shot_clock", "home_fouls"} <= set(d)
+    name, c = app.mqtt_contract(d)
+    out = sm.SportzcastMqttOutput(sr.deep_merge(sr.DEFAULT_CONFIG, {}))
+    js, sb = out._payloads(d, (name, c))
+    j = json.loads(js)
+    assert name == "Basketball" and "Down" not in j and j["HomeScore"] == "14" and j["GuestScore"] == "21"
+    assert j["Clock"].strip() == "4:32" and sb[:2] != "02"
+
+
+def test_rtd_football_still_uses_the_original_payload_builder(paths):
+    app = make_app(sport="football")
+    app.decoder.feed(sr.encode_rtd_packet(0, " 4:32"))
+    assert app.mqtt_contract(app.build_data()) is None
+
+
+def test_current_loop_basketball_console_uses_scoreconnect_layout(paths):
+    from conftest import make_cl_frame as frame
+    app = make_app()
+    stream = frame(0xFE, b"11015000430") + frame(1, bytes([0x66, 0x4F, 0x5B, 0x00, 0x00, 0x00, 0x40]))
+    for _ in range(3):
+        app.reader._feed(stream)
+    d = app.build_data()
+    assert d["sport"] == "basketball" and d["protocol"] == "Daktronics_Basketball"
+    assert not FOOTBALL_ONLY & set(d)
+    assert app.mqtt_contract(d)[0] == "Basketball"
+    assert app.state_json()["contract"][0]["v"] == "Basketball"
+
+
+def test_current_loop_football_and_soccer_stay_on_the_builtin_decoder(paths):
+    from conftest import make_cl_frame as frame
+    for code, sport in ((b"66015000430", "football"), (b"76015000430", "soccer")):
+        app = make_app()
+        app.reader._feed(frame(0xFE, code) * 3)
+        d = app.build_data()
+        assert d["sport"] == sport and d["protocol"] == "daktronics_current_loop"
+        assert app.mqtt_contract(d) is None
+
+
+def test_switching_back_to_builtin_daktronics_restores_the_bot_setup(paths):
+    app = make_app("PIC55AA_Nevco_Basketball")
+    app.bot_plan()["on_configured"]()                       # bot was set up for Nevco
+    back = make_app("", scorelink=app.saved["scorelink"])
+    plan = back.bot_plan()
+    assert plan["configure"] is True and plan["commands"] is None   # None = the config's Daktronics commands
+    plan["on_configured"]()
+    assert make_app("", scorelink=back.saved["scorelink"]).bot_plan() == {}
+    assert make_app().bot_plan() == {}                       # never-configured installs are left alone, as before
+
+
+def test_electromech_hockey_end_to_end(paths):
+    import sys
+    sys.path.insert(0, __import__("os").path.dirname(__file__))
+    from test_sb_electromech import SEG, bcdv, cell
+    app = make_app("Electromech_Hockey")
+    plan = app.bot_plan()
+    assert plan["commands"] == [">M0X0X", ">T0", ">D0", ">M8I1N"] and plan["baud"] == 2400
+    app.reader._feed(cell(2, SEG["2"], flag=1) + cell(1, bcdv(1, 4)) + cell(0, bcdv(5, 9)) + cell(8, bcdv(0, 3))
+                     + cell(9, bcdv(1, 1)) + cell(4, bcdv(2, 5)))
+    d = app.build_data()
+    assert (d["sport"], d["clock"], d["period"], d["home_score"], d["guest_score"]) == ("hockey", "14:59", "2", "3", "11")
+    assert not {"down", "down_distance", "ball_on"} & set(d)
+    js, sb = sm.SportzcastMqttOutput(sr.deep_merge(sr.DEFAULT_CONFIG, {}))._payloads(d, app.mqtt_contract(d))
+    assert json.loads(js)["EventId"] == 5 and sb[:2] == "05"

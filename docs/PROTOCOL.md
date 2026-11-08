@@ -74,7 +74,7 @@ Byte indices below are into the frame after `55 AA` (`p[0]` = addr, so `p[5]` = 
 |---|---|
 | 11 | `p[5..8]` clock · `p[15..16]` home score · `p[17..18]` guest score · `p[19]` half |
 | 12 | `p[13]&0x80` horn · `p[15..16]` home shots · `p[17..18]` guest shots |
-| 13 | ScoreConnect reads corners from `p[15..16]` / `p[17..18]`. **Rafferty Stadium's board sends zeros here**, so ScoreReader ignores it while address 72 is active. |
+| 13 | ScoreConnect reads corners from `p[15..16]` / `p[17..18]`. **The reference board (captured in `tests/test_current_loop.py`) sends zeros here**, so ScoreReader ignores it while address 72 is active. |
 | 72 | stats panel: `p[5..6]` home CKICKS · `p[8..9]` home SOG · `p[15..16]` guest CKICKS · `p[18..19]` guest SOG |
 
 You can remap any field without changing code using the `custom_fields` setting in `scorereader_config.json` (see README).
