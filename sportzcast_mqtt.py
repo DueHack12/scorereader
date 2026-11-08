@@ -68,8 +68,10 @@ def build_payloads(d: dict, cfg: dict, now: float | None = None):
     now = time.time() if now is None else now
     m = cfg.get("mqtt", {})
     bot = int(m.get("bot_number", 0))
-    home_name = m.get("home_team_name", "HOME")
-    guest_name = m.get("guest_team_name", "GUEST")
+    # ScoreReader puts the team names (Settings > Teams, or the console's) into the data; the legacy
+    # mqtt.home_team_name / guest_team_name keys are the fallback for older configs and direct callers.
+    home_name = d.get("home_name") or m.get("home_team_name", "HOME")
+    guest_name = d.get("guest_name") or m.get("guest_team_name", "GUEST")
 
     mode, mt, mo, st, so, tenths = _clock_parts(d.get("clock", ""))
     running = bool(d.get("clock_running"))
@@ -546,7 +548,6 @@ class SportzcastMqttOutput:
     def __init__(self, cfg: dict, log=print):
         self.cfg = cfg
         m = cfg.get("mqtt", {})
-        self.bot = int(m.get("bot_number", 0))
         self.min_interval = 1.0 / max(1.0, float(m.get("publish_rate", 10)))
         self.heartbeat = float(m.get("heartbeat_seconds", 1.0))
         self.publish_raw = bool(m.get("publish_raw", True))
@@ -559,6 +560,14 @@ class SportzcastMqttOutput:
         self.last_json = ""
         self.lock = threading.Lock()
         self.event = threading.Event()
+
+    @property
+    def bot(self) -> int:
+        """Read live from the config, so a new bot number from Settings applies immediately."""
+        try:
+            return int(self.cfg.get("mqtt", {}).get("bot_number", 0))
+        except (TypeError, ValueError):
+            return 0
 
     @property
     def status(self):

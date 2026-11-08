@@ -24,6 +24,7 @@ Run  `python scorereader.py --help`  for options.
 from __future__ import annotations
 
 import argparse
+import copy
 import csv
 import datetime as _dt
 import io
@@ -97,16 +98,22 @@ DEFAULT_CONFIG = {
         "ws_port": 8083,
         "broker_host": "127.0.0.1",
         "broker_port": 1883,
-        "home_team_name": "HOME",
-        "guest_team_name": "GUEST",
         "publish_rate": 10,          # max messages/sec on json & sbdata
         "heartbeat_seconds": 1.0,    # re-publish even when nothing changed
         "publish_raw": True,
     },
+    # Team info added to every output (data.json, vMix, MQTT). A blank name falls back to the name the
+    # console sends (RTD only), then to the legacy mqtt.home_team_name / guest_team_name, then HOME / GUEST.
+    "teams": {"home_name": "", "guest_name": "", "home_abbr": "", "guest_abbr": "",
+              "home_color": "", "guest_color": ""},
     "text_files": {"enabled": False, "folder": "text_out"},
     "record_raw": True,
+    "save_state": False,             # restore the last RTD buffer after a restart (scorereader_state.bin)
     "strict_daktronics_header": True,
 }
+
+# Sources that are never written to scorereader_config.json, so the next normal start is always live data.
+RUNTIME_ONLY_SOURCES = ("demo", "replay")
 
 
 # --------------------------------------------------------------------------- utils
@@ -121,12 +128,13 @@ def log(msg: str) -> None:
 
 
 def deep_merge(base: dict, over: dict) -> dict:
-    out = dict(base)
+    """Recursive merge that returns a fully independent copy (changing it never touches base/over)."""
+    out = copy.deepcopy(base)
     for k, v in (over or {}).items():
         if isinstance(v, dict) and isinstance(out.get(k), dict) and k != "fields":
             out[k] = deep_merge(out[k], v)
         else:
-            out[k] = v
+            out[k] = copy.deepcopy(v)
     return out
 
 
@@ -139,8 +147,107 @@ def load_config() -> dict:
 
 
 def save_config(cfg: dict) -> None:
-    with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+    tmp = CONFIG_PATH + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(cfg, f, indent=2, ensure_ascii=False)
+    os.replace(tmp, CONFIG_PATH)
+
+
+def get_path(d: dict, path: str, default=None):
+    for k in path.split("."):
+        if not isinstance(d, dict) or k not in d:
+            return default
+        d = d[k]
+    return d
+
+
+def set_path(d: dict, path: str, value) -> None:
+    *parents, last = path.split(".")
+    for k in parents:
+        d = d.setdefault(k, {})
+    d[last] = value
+
+
+# Settings editable from the dashboard.  path: (group, label, type, apply)
+#   type:  str | int | port | bool | color | choice
+#   apply: live    = takes effect immediately
+#          reader  = restarts the data source (and clears the decoded values)
+#          vmix    = reconnects the vMix TCP push
+#          restart = saved now, used the next time ScoreReader starts
+SETTINGS = {
+    "source": ("Data source", "Source", "choice", "reader"),
+    "port": ("Data source", "Serial port", "str", "reader"),
+    "baud": ("Data source", "Baud", "int", "reader"),
+    "tcp.host": ("Data source", "TCP host", "str", "reader"),
+    "tcp.port": ("Data source", "TCP port", "port", "reader"),
+    "replay_file": ("Data source", "Capture to replay", "choice", "reader"),
+    "scorelink.probe_on_start": ("Data source", "Ask the bot for its settings at start", "bool", "reader"),
+    "scorelink.send_config_on_start": ("Data source", "Re-send the bot configuration at start", "bool", "reader"),
+    "sport": ("Scoreboard", "Sport (used when the console doesn't identify itself)", "choice", "live"),
+    "teams.home_name": ("Teams", "Home name", "str", "live"),
+    "teams.home_abbr": ("Teams", "Home abbreviation", "str", "live"),
+    "teams.home_color": ("Teams", "Home color", "color", "live"),
+    "teams.guest_name": ("Teams", "Guest name", "str", "live"),
+    "teams.guest_abbr": ("Teams", "Guest abbreviation", "str", "live"),
+    "teams.guest_color": ("Teams", "Guest color", "color", "live"),
+    "vmix.enabled": ("vMix", "Push values to vMix (TCP API)", "bool", "vmix"),
+    "vmix.host": ("vMix", "vMix host", "str", "vmix"),
+    "vmix.port": ("vMix", "vMix TCP port", "port", "vmix"),
+    "vmix.input": ("vMix", "Title input name or number", "str", "vmix"),
+    "mqtt.enabled": ("MQTT (OSE)", "MQTT output", "bool", "restart"),
+    "mqtt.bot_number": ("MQTT (OSE)", "Bot number (topics bot/N/…)", "int", "live"),
+    "mqtt.mode": ("MQTT (OSE)", "Mode", "choice", "restart"),
+    "mqtt.tcp_port": ("MQTT (OSE)", "Broker TCP port", "port", "restart"),
+    "mqtt.ws_port": ("MQTT (OSE)", "Broker WebSocket port", "port", "restart"),
+    "mqtt.broker_host": ("MQTT (OSE)", "External broker host (client mode)", "str", "restart"),
+    "mqtt.broker_port": ("MQTT (OSE)", "External broker port (client mode)", "port", "restart"),
+    "text_files.enabled": ("Files", "Write one .txt file per field", "bool", "live"),
+    "record_raw": ("Files", "Record raw bytes to logs/", "bool", "live"),
+    "save_state": ("Files", "Remember board values after a restart (RTD only)", "bool", "live"),
+    "http_port": ("Advanced", "Dashboard / data.json port", "port", "restart"),
+}
+
+
+def list_captures() -> list[str]:
+    try:
+        names = [n for n in os.listdir(LOG_DIR) if n.endswith(".bin")]
+    except OSError:
+        return []
+    return sorted(names, key=lambda n: os.path.getmtime(os.path.join(LOG_DIR, n)), reverse=True)[:50]
+
+
+def coerce_setting(path: str, value, choices: dict):
+    """Validate one dashboard setting. Returns the clean value or raises ValueError with a readable message."""
+    kind = SETTINGS[path][2]
+    if kind == "bool":
+        if isinstance(value, str):
+            value = value.strip().lower() in ("1", "true", "yes", "on")
+        return bool(value)
+    if kind in ("int", "port"):
+        try:
+            n = int(str(value).strip())
+        except ValueError:
+            raise ValueError("must be a whole number") from None
+        lo, hi = (1, 65535) if kind == "port" else (0, 10_000_000)
+        if path == "mqtt.ws_port":
+            lo = 0  # 0 = WebSocket off
+        if not lo <= n <= hi:
+            raise ValueError(f"must be between {lo} and {hi}")
+        return n
+    if kind == "color":
+        v = str(value or "").strip()
+        if v and not (len(v) == 7 and v[0] == "#" and all(c in "0123456789abcdefABCDEF" for c in v[1:])):
+            raise ValueError("must look like #1E3A8A (or be blank)")
+        return v.upper()
+    if kind == "choice":
+        v = str(value)
+        if v not in choices.get(path, ()):
+            raise ValueError(f"'{v}' is not one of: {', '.join(choices.get(path, ())) or 'none available'}")
+        return v
+    v = str(value if value is not None else "").strip()
+    if len(v) > 200:
+        raise ValueError("is too long")
+    return v
 
 
 def ordinal(n: int) -> str:
@@ -173,6 +280,15 @@ class Status:
     def set_source(self, state: str, detail: str = ""):
         with self.lock:
             self.source_state, self.source_detail = state, detail
+
+    def reset_counters(self):
+        """Called when the data source changes, so the dashboard doesn't mix the old and new sources."""
+        with self.lock:
+            self.bytes_in = self.packets = self.bad_packets = 0
+            self.unknown_headers = {}
+            self.last_packet_time = self.last_byte_time = 0.0
+            self.pic_info = {}
+            self.recent_hex = ""
 
 
 STATUS = Status()
@@ -912,26 +1028,36 @@ class Reader(threading.Thread):
 
     def run(self):
         src = self.cfg["source"]
-        while not self.stop.is_set():
-            try:
-                if src == "demo":
-                    self.run_demo()
-                elif src == "replay":
-                    self.run_replay()
-                elif src == "tcp":
-                    self.run_tcp()
-                else:
-                    self.run_serial(scorelink=(src == "scorelink"))
-            except Exception as e:
-                msg = str(e)
-                if "Access is denied" in msg or "PermissionError" in repr(e) or "busy" in msg.lower():
-                    msg += "  -> The port is in use. Quit ScoreConnect III AND stop its Windows service " \
-                           "(admin cmd: net stop ScoreConnectIII), then this will retry automatically."
-                STATUS.set_source("error", msg)
-                log(f"Source error: {msg}")
-                if os.environ.get("SCOREREADER_DEBUG"):
-                    traceback.print_exc()
-            self.stop.wait(3)
+        try:
+            while not self.stop.is_set():
+                try:
+                    if src == "demo":
+                        self.run_demo()
+                    elif src == "replay":
+                        self.run_replay()
+                    elif src == "tcp":
+                        self.run_tcp()
+                    else:
+                        self.run_serial(scorelink=(src == "scorelink"))
+                except Exception as e:
+                    if self.stop.is_set():
+                        break
+                    msg = str(e)
+                    if "Access is denied" in msg or "PermissionError" in repr(e) or "busy" in msg.lower():
+                        msg += "  -> The port is in use. Quit ScoreConnect III AND stop its Windows service " \
+                               "(admin cmd: net stop ScoreConnectIII), then this will retry automatically."
+                    STATUS.set_source("error", msg)
+                    log(f"Source error: {msg}")
+                    if os.environ.get("SCOREREADER_DEBUG"):
+                        traceback.print_exc()
+                self.stop.wait(3)
+        finally:
+            if self.raw_file is not None:
+                try:
+                    self.raw_file.close()
+                except OSError:
+                    pass
+                self.raw_file = None
 
     def run_serial(self, scorelink: bool):
         import serial
@@ -970,7 +1096,11 @@ class Reader(threading.Thread):
                 mcp.close()
 
     def run_replay(self):
-        path = self.cfg["replay_file"]
+        path = self.cfg.get("replay_file") or ""
+        if not path:
+            raise RuntimeError("No capture chosen to replay (pick one in Settings, or pass --replay FILE)")
+        if not os.path.isabs(path) and not os.path.exists(path):
+            path = os.path.join(LOG_DIR, path)  # dashboard picks a file name from logs/
         STATUS.set_source("connected", f"REPLAY {os.path.basename(path)}")
         with open(path, "rb") as f:
             raw = f.read()
@@ -1114,6 +1244,14 @@ class VmixPusher(threading.Thread):
         except OSError:
             pass
 
+    def _close(self):
+        if self.sock:
+            try:
+                self.sock.close()
+            except OSError:
+                pass
+        self.sock = None
+
     def run(self):
         latest = None
         while not self.stop.is_set():
@@ -1123,7 +1261,7 @@ class VmixPusher(threading.Thread):
                     latest = self.q.get_nowait()
             except queue.Empty:
                 pass
-            if latest is None:
+            if latest is None or self.stop.is_set():
                 continue
             try:
                 if self.sock is None:
@@ -1135,13 +1273,9 @@ class VmixPusher(threading.Thread):
                     self.last_sent[field] = key
             except OSError as e:
                 STATUS.vmix_state = f"error: {e} (retrying)"
-                if self.sock:
-                    try:
-                        self.sock.close()
-                    except OSError:
-                        pass
-                self.sock = None
+                self._close()
                 self.stop.wait(2)
+        self._close()
 
 
 def write_text_files(folder: str, data: dict, cache: dict):
@@ -1178,17 +1312,35 @@ th{color:var(--mut);font-weight:500}td.v{font-family:ui-monospace,Consolas,monos
 pre{margin:0;max-height:220px;overflow:auto;font-size:12px;color:var(--mut);white-space:pre-wrap}
 select,button,input{background:#222a35;color:var(--ink);border:1px solid #333d4b;border-radius:6px;padding:5px 9px}
 button{cursor:pointer}a{color:var(--acc)}.mut{color:var(--mut)}
+.banner{background:var(--warn);color:#111;padding:10px 18px;font-weight:600;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.banner[hidden],#settings[hidden]{display:none}.banner button{background:#111;color:#fff;border-color:#111}
+.tbar{height:4px;width:60px;margin:6px auto 0;border-radius:2px}
+#settings{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;justify-content:flex-end;z-index:10}
+#settings .panel{background:var(--card);width:min(560px,100%);height:100%;overflow:auto;padding:16px 18px;border-left:1px solid #222a35}
+#settings h2{font-size:17px;margin:0 0 4px}fieldset{border:1px solid #222a35;border-radius:8px;margin:0 0 14px;padding:8px 12px}
+legend{color:var(--mut);padding:0 6px}label.set{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:5px 0}
+label.set[hidden]{display:none}label.set input:not([type=checkbox]),label.set select{width:230px;max-width:52vw}
+.colr{display:flex;gap:6px}.colr input[type=color]{width:34px!important;padding:0;height:30px}
+.setbar{position:sticky;bottom:-16px;background:var(--card);padding:12px 0;display:flex;gap:10px;align-items:center;border-top:1px solid #222a35}
+.primary{background:var(--acc);border-color:var(--acc);color:#fff}#setmsg{flex:1;font-size:13px}#setmsg.bad{background:none}
 </style></head><body>
 <header><h1>ScoreReader</h1><span id="src" class="pill">…</span><span id="age" class="pill">…</span><span id="vmix" class="pill">vMix</span><span id="mqtt" class="pill">MQTT</span>
 <span class="mut" id="stats"></span><span style="flex:1"></span>
 <label class="mut">Sport <select id="sport"></select></label>
 <button onclick="reinit()" title="Re-run ScoreLinkII probe + config">Re-init bot</button>
+<button onclick="openSettings()">Settings</button>
 <a href="/data.json" target="_blank">data.json</a><a href="/data.xml" target="_blank">data.xml</a></header>
+<div class="banner" id="demo" hidden><span id="demotxt"></span><button onclick="goLive()">Back to live data</button></div>
+<div id="settings" hidden onclick="if(event.target===this)closeSettings()"><div class="panel">
+ <h2>Settings</h2><p class="mut" style="margin:0 0 12px">Saved to <span id="cfgpath"></span>. Demo and replay are never saved: ScoreReader always starts with live data.</p>
+ <div id="setform"></div><datalist id="portlist"></datalist>
+ <div class="setbar"><button class="primary" onclick="saveSettings()">Save</button><button onclick="closeSettings()">Close</button><span id="setmsg" class="mut"></span></div>
+</div></div>
 <main>
 <div class="card bug">
- <div><div class="team" id="hn">HOME</div><div class="score" id="hs">0</div><div class="poss" id="hp"></div></div>
+ <div><div class="team" id="hn">HOME</div><div class="tbar" id="hc"></div><div class="score" id="hs">0</div><div class="poss" id="hp"></div></div>
  <div class="mid"><div class="clock" id="clk">--:--</div><div class="sub" id="sub"></div></div>
- <div><div class="team" id="gn">GUEST</div><div class="score" id="gs">0</div><div class="poss" id="gp"></div></div>
+ <div><div class="team" id="gn">GUEST</div><div class="tbar" id="gc"></div><div class="score" id="gs">0</div><div class="poss" id="gp"></div></div>
 </div>
 <div class="cols">
  <div class="card"><b>Fields</b> <span class="mut">(names = keys in data.json)</span>
@@ -1197,9 +1349,43 @@ button{cursor:pointer}a{color:var(--acc)}.mut{color:var(--mut)}
    <br><b>Log</b><pre id="log"></pre><br><b>Last bytes (hex)</b><pre id="hex"></pre></div>
 </div></main>
 <script>
-let fieldsMeta=[];
-async function reinit(){await fetch('/api/reinit',{method:'POST'});}
-document.getElementById('sport').onchange=async e=>{await fetch('/api/sport?name='+e.target.value,{method:'POST'});fieldsMeta=[];};
+let fieldsMeta=[];const H={'X-ScoreReader':'1'};
+const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+async function reinit(){await fetch('/api/reinit',{method:'POST',headers:H});}
+document.getElementById('sport').onchange=async e=>{await fetch('/api/sport?name='+encodeURIComponent(e.target.value),{method:'POST',headers:H});fieldsMeta=[];};
+async function postSettings(ch){const r=await fetch('/api/settings',{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify(ch)});return r.json();}
+async function goLive(){await postSettings({source:window._live||'scorelink'});}
+const SRC={scorelink:'ScoreBot / ScoreLinkII (USB)',serial:'Serial cable to the console',tcp:'Network serial server (TCP)',
+ demo:'Demo: simulated game (not saved)',replay:'Replay a capture (not saved)'};
+let S=null;
+async function openSettings(){S=await (await fetch('/api/settings')).json();renderSettings();document.getElementById('settings').hidden=false;}
+function closeSettings(){document.getElementById('settings').hidden=true;}
+function sid(p){return 'set_'+p.replace(/\./g,'_');}
+function inputFor(sp){const v=S.values[sp.path],id=sid(sp.path);
+ if(sp.type=='bool')return `<input type="checkbox" id="${id}" ${v?'checked':''}>`;
+ if(sp.type=='choice'){const ch=S.choices[sp.path]||[];if(!ch.length)return '<span class="mut">none yet</span>';
+  return `<select id="${id}">`+ch.map(c=>`<option value="${esc(c)}" ${c==v?'selected':''}>${esc(sp.path=='source'?(SRC[c]||c):c)}</option>`).join('')+'</select>';}
+ if(sp.type=='color')return `<span class="colr"><input type="color" value="${esc(v||'#000000')}" oninput="${id}.value=this.value.toUpperCase()"><input id="${id}" value="${esc(v)}" placeholder="#1E3A8A"></span>`;
+ return `<input id="${id}" value="${esc(v)}"${sp.path=='port'?' list="portlist"':''}${sp.type=='int'||sp.type=='port'?' inputmode="numeric"':''}>`;}
+const SHOW={port:['scorelink','serial'],baud:['scorelink','serial'],'scorelink.probe_on_start':['scorelink'],
+ 'scorelink.send_config_on_start':['scorelink'],'tcp.host':['tcp'],'tcp.port':['tcp'],replay_file:['replay']};
+function renderSettings(){const groups={};S.spec.forEach(sp=>(groups[sp.group]=groups[sp.group]||[]).push(sp));let h='';
+ for(const [g,list] of Object.entries(groups)){h+=`<fieldset><legend>${esc(g)}</legend>`;
+  list.forEach(sp=>{h+=`<label class="set" data-path="${sp.path}"><span>${esc(sp.label)}${sp.apply=='restart'?' <em class="mut">(after restart)</em>':''}</span>${inputFor(sp)}</label>`});
+  if(g=='Files')h+=`<p class="mut" style="margin:4px 0">Text files go to ${esc(S.text_folder)}</p>`;h+='</fieldset>';}
+ setform.innerHTML=h;cfgpath.textContent=S.config_path;setmsg.textContent='';setmsg.className='mut';
+ portlist.innerHTML='<option value="auto">auto-detect</option>'+S.ports.map(p=>`<option value="${esc(p.device)}">${esc(p.description)}${p.scorelink?' (ScoreBot)':''}</option>`).join('');
+ const src=document.getElementById(sid('source'));if(src){src.onchange=showFor;}showFor();}
+function showFor(){const src=(document.getElementById(sid('source'))||{}).value;
+ document.querySelectorAll('label.set').forEach(l=>{const w=SHOW[l.dataset.path];l.hidden=!!w&&!w.includes(src);});}
+async function saveSettings(){const ch={};
+ S.spec.forEach(sp=>{const el=document.getElementById(sid(sp.path));if(!el)return;const lab=el.closest('label');if(lab&&lab.hidden&&sp.path!='source')return;
+  const v=sp.type=='bool'?el.checked:el.value;if(String(v)!==String(S.values[sp.path]??''))ch[sp.path]=v;});
+ if(!Object.keys(ch).length){setmsg.textContent='Nothing changed.';return;}
+ const r=await postSettings(ch);
+ if(!r.ok){setmsg.className='bad';setmsg.textContent=Object.values(r.errors).join(' · ');return;}
+ S=await (await fetch('/api/settings')).json();renderSettings();
+ setmsg.className='';setmsg.textContent='Saved.'+(r.restart_needed.length?' Restart ScoreReader to apply: '+r.restart_needed.join(', '):'');}
 async function tick(){
  try{
   const r=await fetch('/api/state');const s=await r.json();
@@ -1214,7 +1400,10 @@ async function tick(){
   const vm=document.getElementById('vmix');vm.textContent='vMix: '+s.vmix_state;vm.className='pill '+(s.vmix_state.startsWith('connected')?'ok':(s.vmix_state=='disabled'?'':'bad'));
   const mq=document.getElementById('mqtt');mq.textContent='MQTT: '+s.mqtt_state;mq.className='pill '+(s.mqtt_state.startsWith('listening')||s.mqtt_state.startsWith('connected')?'ok':(s.mqtt_state=='disabled'?'':'bad'));
   document.getElementById('stats').textContent=`${s.bytes_in} bytes · ${s.packets} pkts · ${s.bad_packets} bad`+(Object.keys(s.unknown_headers).length?' · unknown hdrs: '+JSON.stringify(s.unknown_headers):'');
+  window._live=s.live_source;const dm=document.getElementById('demo');dm.hidden=s.source_saved;
+  if(!s.source_saved)demotxt.textContent=s.source=='demo'?'DEMO MODE: simulated game, not the scoreboard':'REPLAY: playing back '+(s.replay_file||'a capture')+', not live data';
   const d=s.data;
+  hc.style.background=d.home_color||'transparent';gc.style.background=d.guest_color||'transparent';
   hn.textContent=d.home_name||'HOME';gn.textContent=d.guest_name||'GUEST';hs.textContent=d.home_score;gs.textContent=d.guest_score;
   hp.textContent=d.home_poss?'◀ POSS':'';gp.textContent=d.guest_poss?'POSS ▶':'';
   clk.textContent=d.clock||'--:--';
@@ -1249,51 +1438,184 @@ setInterval(tick,250);tick();
 
 
 class App:
-    def __init__(self, cfg):
+    def __init__(self, cfg, saved: dict | None = None):
+        """cfg = the running configuration (config file + command-line overrides).
+        saved = the configuration as stored in scorereader_config.json. Only explicit changes from the dashboard
+        are written back, so options like --demo or --no-mqtt never end up in the file."""
         self.cfg = cfg
+        self.saved = saved if saved is not None else json.loads(json.dumps(cfg))
         self.stop = threading.Event()
-        self.decoder = DaktronicsRTD(cfg.get("strict_daktronics_header", True))
-        self.cl = DaktronicsCurrentLoop()
-        self.cl.sport_fallback = lambda: self.cfg["sport"]
-        self.cl.custom_fields = lambda: self.cfg.get("custom_fields", {})
+        self.running = False
+        self.gen = 0  # bumped on any settings change, so outputs refresh even if the board hasn't changed
+        self.swap_lock = threading.Lock()  # held while the decoders are replaced or read
+        self.settings_lock = threading.Lock()
         self.sports = SportMap(FIELDS_PATH)
         if cfg["sport"] not in self.sports.sports:
             log(f"Unknown sport '{cfg['sport']}', using football. Options: {', '.join(self.sports.names())}")
             cfg["sport"] = "football"
-        self.reader = Reader(cfg, self.decoder, self.stop, self.cl)
-        self.vmix = VmixPusher(cfg, self.stop) if cfg["vmix"].get("enabled") else None
+        self.decoder, self.cl = self._new_decoders()
         self.mqtt = None
         if cfg.get("mqtt", {}).get("enabled"):
             from sportzcast_mqtt import SportzcastMqttOutput
 
             self.mqtt = SportzcastMqttOutput(cfg, log=log)
-            self.reader.raw_hook = self.mqtt.raw
+        self.reader = self._new_reader()
+        self.vmix = VmixPusher(cfg, threading.Event()) if cfg["vmix"].get("enabled") else None
         self.data: dict = {}
         self.data_lock = threading.Lock()
 
+    # ---- components
+    def _new_decoders(self):
+        dec = DaktronicsRTD(self.cfg.get("strict_daktronics_header", True))
+        cl = DaktronicsCurrentLoop()
+        cl.sport_fallback = lambda: self.cfg["sport"]
+        cl.custom_fields = lambda: self.cfg.get("custom_fields", {})
+        return dec, cl
+
+    def _new_reader(self):
+        r = Reader(self.cfg, self.decoder, threading.Event(), self.cl)
+        if self.mqtt:
+            r.raw_hook = self.mqtt.raw
+        return r
+
+    def restart_reader(self):
+        """Stop the data source, clear every decoded value, and start the source currently in cfg."""
+        old = self.reader
+        old.stop.set()
+        if old.is_alive():
+            old.join(timeout=5)
+            if old.is_alive():
+                log("The previous data source is still closing; the new one will retry until the port is free")
+        with self.swap_lock:
+            self.decoder, self.cl = self._new_decoders()
+            STATUS.reset_counters()
+            STATUS.set_source("starting", self.cfg["source"])
+            self.reader = self._new_reader()
+            self.gen += 1
+        log(f"Data source: {self.cfg['source']}")
+        if self.running:
+            self.reader.start()
+
+    def restart_vmix(self):
+        if self.vmix:
+            self.vmix.stop.set()
+            self.vmix = None
+        if self.cfg["vmix"].get("enabled"):
+            self.vmix = VmixPusher(self.cfg, threading.Event())
+            STATUS.vmix_state = "connecting"
+            if self.running:
+                self.vmix.start()
+        else:
+            STATUS.vmix_state = "disabled"
+
+    # ---- settings
+    def live_source(self) -> str:
+        """The source to go back to after demo/replay: the saved one, or the ScoreBot."""
+        s = self.saved.get("source", "scorelink")
+        return "scorelink" if s in RUNTIME_ONLY_SOURCES else s
+
+    def setting_choices(self) -> dict:
+        return {"source": ["scorelink", "serial", "tcp", "demo", "replay"], "sport": self.sports.names(),
+                "mqtt.mode": ["broker", "client"], "replay_file": list_captures()}
+
+    def settings_json(self) -> dict:
+        try:
+            ports = [{"device": p.device, "description": p.description,
+                      "scorelink": (p.vid, p.pid) == (SCORELINK_VID, SCORELINK_PID)} for p in list_serial_ports()]
+        except Exception:
+            ports = []
+        return {
+            "values": {p: get_path(self.cfg, p, "") for p in SETTINGS},
+            "spec": [{"path": p, "group": g, "label": lbl, "type": t, "apply": a} for p, (g, lbl, t, a) in SETTINGS.items()],
+            "choices": self.setting_choices(),
+            "ports": ports,
+            "runtime_only_sources": list(RUNTIME_ONLY_SOURCES),
+            "live_source": self.live_source(),
+            "config_path": CONFIG_PATH,
+            "text_folder": os.path.join(APP_DIR, get_path(self.cfg, "text_files.folder", "text_out")),
+        }
+
+    def apply_settings(self, changes: dict) -> dict:
+        """Validate and apply dashboard settings. All-or-nothing: if any value is invalid, nothing changes."""
+        if not isinstance(changes, dict):
+            return {"ok": False, "errors": {"": "expected a JSON object"}}
+        choices = self.setting_choices()
+        clean, errors = {}, {}
+        for path, value in changes.items():
+            if path not in SETTINGS:
+                errors[path] = "is not a setting that can be changed here"
+                continue
+            try:
+                clean[path] = coerce_setting(path, value, choices)
+            except ValueError as e:
+                errors[path] = f"{SETTINGS[path][1]} {e}"
+        if errors:
+            return {"ok": False, "errors": errors}
+        with self.settings_lock:
+            changed = {p: v for p, v in clean.items() if get_path(self.cfg, p) != v}
+            persist = False
+            for path, value in changed.items():
+                set_path(self.cfg, path, value)
+                # demo/replay are never saved, so the next start is always live data
+                runtime_only = path == "replay_file" or (path == "source" and value in RUNTIME_ONLY_SOURCES)
+                if not runtime_only:
+                    set_path(self.saved, path, value)
+                    persist = True
+                log(f"Setting {path} = {value!r}" + (" (this session only)" if runtime_only else ""))
+            if persist:
+                save_config(self.saved)
+            kinds = {SETTINGS[p][3] for p in changed}
+            if "reader" in kinds:
+                self.restart_reader()
+            if "vmix" in kinds:
+                self.restart_vmix()
+            self.gen += 1
+        return {"ok": True, "changed": sorted(changed),
+                "restart_needed": sorted(p for p in changed if SETTINGS[p][3] == "restart")}
+
+    # ---- data
     def current(self) -> dict:
         with self.data_lock:
             return dict(self.data)
+
+    def add_team_info(self, d: dict) -> None:
+        """Team names/abbreviations/colors from Settings. A blank name falls back to what the console sent
+        (RTD), then the legacy mqtt.home_team_name/guest_team_name, then HOME/GUEST."""
+        t = self.cfg.get("teams", {}) or {}
+        m = self.cfg.get("mqtt", {}) or {}
+        for side in ("home", "guest"):
+            d[f"{side}_name"] = (str(t.get(f"{side}_name") or "").strip() or str(d.get(f"{side}_name") or "").strip()
+                                 or str(m.get(f"{side}_team_name") or "").strip() or side.upper())
+            d[f"{side}_abbr"] = (str(t.get(f"{side}_abbr") or "").strip()
+                                 or str(d.get(f"{side}_abbr") or "").strip())
+            d[f"{side}_color"] = str(t.get(f"{side}_color") or "").strip()
+
+    def build_data(self) -> dict:
+        with self.swap_lock:
+            if self.cl.packets:
+                d = self.cl.data()
+            else:
+                d = self.sports.extract(self.cfg["sport"], self.decoder.snapshot())
+        # single possession field for graphics: "H", "V" or "" (no possession lit on the board)
+        if "home_poss" in d:
+            d["possession"] = "H" if d.get("home_poss") else ("V" if d.get("guest_poss") else "")
+        self.add_team_info(d)
+        return d
 
     def update_loop(self):
         seen = None
         text_cache: dict = {}
         last_save = 0.0
         while not self.stop.is_set():
-            v = (self.decoder.version, self.cl.version)
+            v = (self.gen, self.decoder.version, self.cl.version)
             if v != seen:
                 seen = v
-                if self.cl.packets:
-                    d = self.cl.data()
-                else:
-                    d = self.sports.extract(self.cfg["sport"], self.decoder.snapshot())
-                # single possession field for graphics: "H", "V" or "" (no possession lit on the board)
-                if "home_poss" in d:
-                    d["possession"] = "H" if d.get("home_poss") else ("V" if d.get("guest_poss") else "")
+                d = self.build_data()
                 with self.data_lock:
                     self.data = d
-                if self.vmix:
-                    self.vmix.submit(d)
+                vm = self.vmix
+                if vm:
+                    vm.submit(d)
                 if self.mqtt:
                     self.mqtt.update(d)
                 tf = self.cfg.get("text_files", {})
@@ -1302,32 +1624,42 @@ class App:
                         write_text_files(os.path.join(APP_DIR, tf.get("folder", "text_out")), d, text_cache)
                     except OSError as e:
                         log(f"text file write error: {e}")
-                if time.time() - last_save > 2:
+                if self.cfg.get("save_state") and time.time() - last_save > 2:
                     last_save = time.time()
                     try:
                         self.decoder.save(STATE_PATH)
                     except OSError:
                         pass
             self.stop.wait(0.03)
+        # app stopping: stop the threads we own
+        self.reader.stop.set()
+        if self.vmix:
+            self.vmix.stop.set()
 
     def state_json(self) -> dict:
-        buf = self.decoder.snapshot()
+        with self.swap_lock:
+            dec, cl = self.decoder, self.cl
+        buf = dec.snapshot()
         now = time.time()
-        with self.decoder.lock:
-            ch = [round(now - t, 1) if t else 9999 for t in self.decoder.changed_at[: len(buf)]]
+        with dec.lock:
+            ch = [round(now - t, 1) if t else 9999 for t in dec.changed_at[: len(buf)]]
         lp = STATUS.last_packet_time
         return {
+            "source": self.cfg["source"],
+            "source_saved": self.cfg["source"] not in RUNTIME_ONLY_SOURCES,
+            "live_source": self.live_source(),
+            "replay_file": os.path.basename(str(self.cfg.get("replay_file") or "")),
             "source_state": STATUS.source_state,
             "source_detail": STATUS.source_detail,
             "bytes_in": STATUS.bytes_in,
             "packets": STATUS.packets,
             "bad_packets": STATUS.bad_packets,
-            "unknown_headers": {} if self.cl.packets else dict(list(STATUS.unknown_headers.items())[:5]),
+            "unknown_headers": {} if cl.packets else dict(list(STATUS.unknown_headers.items())[:5]),
             "packet_age": (now - lp) if lp else None,
             "vmix_state": STATUS.vmix_state,
             "mqtt_state": self.mqtt.status if self.mqtt else "disabled",
             "pic_info": STATUS.pic_info,
-            "sport": self.cl.sport if self.cl.packets else self.cfg["sport"],
+            "sport": cl.sport if cl.packets else self.cfg["sport"],
             "sports": self.sports.names(),
             "fields": [{"name": f["name"], "pos": f["pos"], "len": f["len"]} for f in self.sports.fields(self.cfg["sport"])],
             "data": self.current(),
@@ -1335,10 +1667,10 @@ class App:
             "changed_ago": ch,
             "logs": STATUS.logs[-80:],
             "recent_hex": STATUS.recent_hex,
-            "protocol": "Daktronics current loop (code " + (self.cl.console_code or "?") + ")" if self.cl.packets
+            "protocol": "Daktronics current loop (code " + (cl.console_code or "?") + ")" if cl.packets
                         else "Daktronics RTD",
-            "cl_table": self.cl.address_table(),
-            "cl_bad": self.cl.bad,
+            "cl_table": cl.address_table(),
+            "cl_bad": cl.bad,
         }
 
     def make_handler(app):
@@ -1379,20 +1711,33 @@ class App:
                     return self._send(200, s.getvalue(), "text/csv")
                 if u.path == "/api/state":
                     return self._send(200, json.dumps(app.state_json()), "application/json")
+                if u.path == "/api/settings":
+                    return self._send(200, json.dumps(app.settings_json(), ensure_ascii=False), "application/json")
                 return self._send(404, "not found", "text/plain")
 
             def do_POST(self):
                 u = urllib.parse.urlparse(self.path)
                 qs = urllib.parse.parse_qs(u.query)
+                # The custom header makes browsers send a CORS preflight for cross-site requests, which this
+                # server never approves, so another web page open on this PC can't change settings.
+                if self.headers.get("X-ScoreReader") != "1":
+                    return self._send(403, "missing X-ScoreReader: 1 header", "text/plain")
+                if u.path == "/api/settings":
+                    try:
+                        n = int(self.headers.get("Content-Length") or 0)
+                        changes = json.loads(self.rfile.read(min(n, 65536)) or b"{}")
+                    except (ValueError, UnicodeDecodeError):
+                        return self._send(400, json.dumps({"ok": False, "errors": {"": "invalid JSON"}}),
+                                          "application/json")
+                    res = app.apply_settings(changes)
+                    return self._send(200 if res["ok"] else 400, json.dumps(res), "application/json")
                 if u.path == "/api/sport":
                     name = (qs.get("name") or [""])[0]
-                    if name in app.sports.sports:
-                        app.cfg["sport"] = name
-                        save_config(app.cfg)
-                        app.decoder.version += 1
-                        app.cl.version += 1
-                        log(f"Sport set to {name}" + (f" (console code {app.cl.console_code} overrides: {app.cl.sport})"
-                                                      if app.cl.console_code in app.cl.CODE_SPORT else ""))
+                    res = app.apply_settings({"sport": name})
+                    if res["ok"]:
+                        cl = app.cl
+                        if cl.console_code in cl.CODE_SPORT:
+                            log(f"Console code {cl.console_code} overrides the sport: {cl.sport}")
                         return self._send(200, "ok", "text/plain")
                     return self._send(400, "unknown sport", "text/plain")
                 if u.path == "/api/reinit":
@@ -1404,7 +1749,9 @@ class App:
         return H
 
     def run(self):
-        self.decoder.load(STATE_PATH)
+        if self.cfg.get("save_state"):
+            self.decoder.load(STATE_PATH)
+        self.running = True
         self.reader.start()
         if self.vmix:
             STATUS.vmix_state = "connecting"
@@ -1426,11 +1773,13 @@ class App:
             log("Stopping…")
         finally:
             self.stop.set()
+            self.reader.stop.set()
             srv.shutdown()
-            try:
-                self.decoder.save(STATE_PATH)
-            except OSError:
-                pass
+            if self.cfg.get("save_state"):
+                try:
+                    self.decoder.save(STATE_PATH)
+                except OSError:
+                    pass
 
 
 # --------------------------------------------------------------------------- CLI tools
@@ -1527,7 +1876,8 @@ def main():
                     help="hex-dump raw bytes from the bot (default 20s) and exit")
     a = ap.parse_args()
 
-    cfg = load_config()
+    saved = load_config()                   # what's in scorereader_config.json
+    cfg = json.loads(json.dumps(saved))     # running config = saved + command-line options (never written back)
     if a.port:
         cfg["port"] = a.port
     if a.baud:
@@ -1568,7 +1918,10 @@ def main():
     if a.fresh and os.path.exists(STATE_PATH):
         os.remove(STATE_PATH)
     print(f"ScoreReader {__version__}  |  source={cfg['source']}  sport={cfg['sport']}  baud={cfg['baud']}  config={CONFIG_PATH}")
-    App(cfg).run()
+    if saved.get("source") in RUNTIME_ONLY_SOURCES:
+        print(f"NOTE: scorereader_config.json has \"source\": \"{saved['source']}\" - that is not live scoreboard data. "
+              "Pick the live source in Settings.")
+    App(cfg, saved=saved).run()
 
 
 if __name__ == "__main__":
