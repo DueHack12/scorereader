@@ -135,3 +135,50 @@ def test_mqtt_uses_contract_payloads_for_brand_decoders(paths):
     out = sm.SportzcastMqttOutput(sr.deep_merge(sr.DEFAULT_CONFIG, {"mqtt": {"bot_number": 3}}))
     js, sb = out._payloads(app.build_data(), app.vendor_contract())
     assert len(sb) == 150 and json.loads(js)["BotNumber"] == 3
+
+
+# ---- fields follow the sport ------------------------------------------------------------------------------------
+FOOTBALL_ONLY = {"down", "to_go", "ball_on", "down_distance", "play_clock"}
+
+
+def test_rtd_basketball_has_no_football_fields_and_publishes_basketball(paths):
+    app = make_app(sport="basketball")
+    app.decoder.feed(sr.encode_rtd_packet(0, " 4:32") + sr.encode_rtd_packet(107, "  14  21"))
+    d = app.build_data()
+    assert d["sport"] == "basketball" and not FOOTBALL_ONLY & set(d)
+    assert {"shot_clock", "home_fouls"} <= set(d)
+    name, c = app.mqtt_contract(d)
+    out = sm.SportzcastMqttOutput(sr.deep_merge(sr.DEFAULT_CONFIG, {}))
+    js, sb = out._payloads(d, (name, c))
+    j = json.loads(js)
+    assert name == "Basketball" and "Down" not in j and j["HomeScore"] == "14" and j["GuestScore"] == "21"
+    assert j["Clock"].strip() == "4:32" and sb[:2] != "02"
+
+
+def test_rtd_football_still_uses_the_original_payload_builder(paths):
+    app = make_app(sport="football")
+    app.decoder.feed(sr.encode_rtd_packet(0, " 4:32"))
+    assert app.mqtt_contract(app.build_data()) is None
+
+
+def test_current_loop_basketball_console_uses_scoreconnect_layout(paths):
+    from conftest import make_cl_frame as frame
+    app = make_app()
+    stream = frame(0xFE, b"11015000430") + frame(1, bytes([0x66, 0x4F, 0x5B, 0x00, 0x00, 0x00, 0x40]))
+    for _ in range(3):
+        app.reader._feed(stream)
+    d = app.build_data()
+    assert d["sport"] == "basketball" and d["protocol"] == "Daktronics_Basketball"
+    assert not FOOTBALL_ONLY & set(d)
+    assert app.mqtt_contract(d)[0] == "Basketball"
+    assert app.state_json()["contract"][0]["v"] == "Basketball"
+
+
+def test_current_loop_football_and_soccer_stay_on_the_builtin_decoder(paths):
+    from conftest import make_cl_frame as frame
+    for code, sport in ((b"66015000430", "football"), (b"76015000430", "soccer")):
+        app = make_app()
+        app.reader._feed(frame(0xFE, code) * 3)
+        d = app.build_data()
+        assert d["sport"] == sport and d["protocol"] == "daktronics_current_loop"
+        assert app.mqtt_contract(d) is None

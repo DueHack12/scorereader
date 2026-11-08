@@ -761,6 +761,68 @@ def contract_to_data(contract: str, c: dict) -> dict:
     return d
 
 
+RTD_CONTRACTS = {"basketball": ("Basketball", "Basketball"), "baseball": ("BaseballSoftball", "Baseball"),
+                 "softball": ("BaseballSoftball", "Softball"), "hockey_lacrosse": ("HockeyLacrosse", "Hockey"),
+                 "hockey": ("HockeyLacrosse", "Hockey"), "lacrosse": ("HockeyLacrosse", "Lacrosse"),
+                 "volleyball": ("Volleyball", "Volleyball")}
+
+
+def rtd_contract(sport: str, d: dict):
+    """(contract, dict) for MQTT from the built-in RTD decoder's fields, for sports other than football/soccer
+    (those keep build_payloads). Only sets fields the sport's Sportzcast contract has. None if not mapped."""
+    if sport not in RTD_CONTRACTS:
+        return None
+    name, event = RTD_CONTRACTS[sport]
+
+    def digits(v, n):
+        t = str(v if v is not None else "").strip()
+        return list(t.rjust(n)[-n:])
+
+    c = {"EventId": event, "InternalClockStatus": "R" if d.get("clock_running") else "S"}
+    clock = str(d.get("clock", "")).strip()
+    if "." in clock and ":" not in clock:
+        sec, t = clock.split(".", 1)
+        st, so = digits(sec, 2)
+        c.update(ClockMode=".", ClockSecondTens=st, ClockSecondOnes=so, ClockTenthsSecond=(t[:1] or "0"))
+    elif ":" in clock:
+        m, sec = clock.split(":", 1)
+        mt, mo = digits(m, 2)
+        st, so = digits(sec.rjust(2, "0"), 2)
+        c.update(ClockMode=":", ClockMinutesTens=mt, ClockMinutesOnes=mo, ClockSecondTens=st, ClockSecondOnes=so)
+    period = str(d.get("period", "")).strip()[-1:] or " "
+    if name == "BaseballSoftball":
+        for side, run in (("Home", "home_score"), ("Guest", "guest_score")):
+            c[f"{side}RunTens"], c[f"{side}RunOnes"] = digits(d.get(run), 2)
+            c[f"{side}HitsTens"], c[f"{side}HitsOnes"] = digits(d.get(f"{side.lower()}_hits"), 2)
+            c[f"{side}Errors"] = (str(d.get(f"{side.lower()}_errors", "")).strip()[-1:] or " ")
+        c["InningTens"], c["InningOnes"] = digits(d.get("period"), 2)
+        for k in ("balls", "strikes", "outs"):
+            c[k.capitalize()] = str(d.get(k, "")).strip()[-1:] or " "
+    else:
+        width = 3 if name == "Basketball" else 2
+        for side in ("Home", "Guest"):
+            ds = digits(d.get(f"{side.lower()}_score"), width)
+            if width == 3:
+                c[f"{side}ScoreHundreds"] = ds.pop(0)
+            c[f"{side}ScoreTens"], c[f"{side}ScoreOnes"] = ds
+            c[f"{side}Timeouts"] = str(d.get(f"{side.lower()}_timeouts", "")).strip()[-1:] or " "
+            c[f"{side}Possession"] = ("<" if side == "Home" else ">") if d.get(f"{side.lower()}_poss") else " "
+        c["Period"] = period
+        if name == "Basketball":
+            for side in ("Home", "Guest"):
+                c[f"{side}FoulTens"], c[f"{side}FoulOnes"] = digits(d.get(f"{side.lower()}_fouls"), 2)
+            c["ShotClockSecondTens"], c["ShotClockSecondOnes"] = digits(d.get("shot_clock"), 2)
+    try:
+        from scoreboards import contracts
+
+        allowed = {p[0] for p in contracts._spec(name).props} | set(contracts._BASE_CHARS) | {
+            "EventId", "InternalClockStatus", "ClockMode"}
+        c = {k: v for k, v in c.items() if k in allowed}
+    except Exception:
+        return None
+    return name, c
+
+
 # --------------------------------------------------------------------------- Windows HID (no hidapi needed)
 class WinHID:
     """Talk to a HID device on Windows using only built-in DLLs (hid.dll / setupapi / kernel32)."""
@@ -1062,6 +1124,7 @@ class Reader(threading.Thread):
         self.cl = cl
         self.vendor = vendor
         self.bot = bot or {}
+        self.cl_other = None  # ScoreConnect's Daktronics autodetect, for console codes other than 6601/7601
         self.raw_file = None
         self.reinit_request = threading.Event()
         self.raw_sink: queue.Queue | None = None  # for --sniff
@@ -1078,6 +1141,8 @@ class Reader(threading.Thread):
             return
         if self.cl is not None:
             self.cl.feed(data)
+            if self.cl_other is not None:
+                self.cl_other.feed(data)
             if self.cl.packets > 20:
                 return  # current-loop stream confirmed: RTD decoder would only see noise
         self.decoder.feed(data)
@@ -1571,7 +1636,15 @@ class App:
         cl.sport_fallback = lambda: self.cfg["sport"]
         cl.custom_fields = lambda: self.cfg.get("custom_fields", {})
         self.vendor = None
+        self.cl_other = None
         pid = self.protocol_id()
+        if not pid:
+            try:
+                import scoreboards
+
+                self.cl_other = scoreboards.create("Daktronics_Autodetect")
+            except Exception:
+                self.cl_other = None
         if pid:
             try:
                 import scoreboards
@@ -1638,6 +1711,7 @@ class App:
 
     def _new_reader(self):
         r = Reader(self.cfg, self.decoder, threading.Event(), self.cl, vendor=self.vendor, bot=self.bot_plan())
+        r.cl_other = self.cl_other
         if self.mqtt:
             r.raw_hook = self.mqtt.raw
         return r
@@ -1782,22 +1856,36 @@ class App:
             d[f"{side}_color"] = str(t.get(f"{side}_color") or "").strip()
 
     def vendor_contract(self):
-        """(contract name, contract dict) of the brand decoder, or None on the built-in Daktronics path."""
+        """(contract name, contract dict) when a ScoreConnect-style decoder supplies the data: the chosen brand,
+        or, on the built-in Daktronics path, a current-loop console code the built-in decoder doesn't know
+        (anything but football 6601 / soccer 7601). None = the built-in decoder."""
         v = self.vendor
         if v is None:
-            return None
+            o, cl = self.cl_other, self.cl
+            if (o is None or not cl.packets or cl.console_code in cl.CODE_SPORT
+                    or getattr(o.decoder, "selected", None) is None):
+                return None
+            v = o
         return v.contract_name, (v.full_contract() if hasattr(v, "full_contract") else v.snapshot())
+
+    def mqtt_contract(self, d: dict):
+        """Contract for the MQTT payloads; None = football/soccer via build_payloads (byte-compatible as before)."""
+        vc = self.vendor_contract()
+        if vc is not None or self.cl.packets:
+            return vc
+        return rtd_contract(self.cfg["sport"], d)
 
     def build_data(self) -> dict:
         with self.swap_lock:
             vc = self.vendor_contract()
             if vc is not None:
                 d = contract_to_data(*vc)
-                d["protocol"] = self.protocol_id()
+                d["protocol"] = self.protocol_id() or (self.cl_other.decoder.selected if self.cl_other else "")
             elif self.cl.packets:
                 d = self.cl.data()
             else:
                 d = self.sports.extract(self.cfg["sport"], self.decoder.snapshot())
+                d.setdefault("sport", self.cfg["sport"])
         # single possession field for graphics: "H", "V" or "" (no possession lit on the board)
         if "home_poss" in d:
             d["possession"] = "H" if d.get("home_poss") else ("V" if d.get("guest_poss") else "")
@@ -1809,7 +1897,8 @@ class App:
         text_cache: dict = {}
         last_save = 0.0
         while not self.stop.is_set():
-            v = (self.gen, self.decoder.version, self.cl.version, self.vendor.version if self.vendor else 0)
+            v = (self.gen, self.decoder.version, self.cl.version, self.vendor.version if self.vendor else 0,
+                 self.cl_other.version if self.cl_other else 0)
             if v != seen:
                 seen = v
                 d = self.build_data()
@@ -1819,7 +1908,7 @@ class App:
                 if vm:
                     vm.submit(d)
                 if self.mqtt:
-                    self.mqtt.update(d, contract=self.vendor_contract())
+                    self.mqtt.update(d, contract=self.mqtt_contract(d))
                 tf = self.cfg.get("text_files", {})
                 if tf.get("enabled"):
                     try:
@@ -1861,7 +1950,8 @@ class App:
             "vmix_state": STATUS.vmix_state,
             "mqtt_state": self.mqtt.status if self.mqtt else "disabled",
             "pic_info": STATUS.pic_info,
-            "sport": cl.sport if cl.packets else self.cfg["sport"],
+            "sport": (self.current().get("sport") or self.cfg["sport"]) if self.vendor_contract() else
+                     (cl.sport if cl.packets else self.cfg["sport"]),
             "vendor_mode": self.vendor is not None,
             "sports": self.sports.names(),
             "fields": [{"name": f["name"], "pos": f["pos"], "len": f["len"]} for f in self.sports.fields(self.cfg["sport"])],
@@ -1883,7 +1973,7 @@ class App:
         vc = self.vendor_contract()
         if vc is None:
             return []
-        v = self.vendor
+        v = self.vendor or self.cl_other
         rows = [{"k": k, "v": str(val)} for k, val in sorted(vc[1].items()) if not isinstance(val, (dict, list))]
         return [{"k": "(contract)", "v": vc[0]}, {"k": "(packets / bad)", "v": f"{v.packets} / {v.bad}"}] + rows
 
