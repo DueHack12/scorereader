@@ -116,7 +116,23 @@ def run(app) -> None:
     for sig, handler in (("SIGINT", _stop), ("SIGTERM", _stop), ("SIGHUP", _window_closed)):
         if hasattr(signal, sig):
             signal.signal(getattr(signal, sig), handler)
+    _rename_process("ScoreReader")
     try:
         MenuBar().run()
     finally:
         app.shutdown()
+
+
+def _rename_process(name: str) -> None:
+    """When run from source the process is Python, so the Dock/app menu would say "Python". Renaming the bundle
+    name before the app starts fixes that where macOS allows it; a packaged ScoreReader.app is named properly anyway."""
+    try:
+        from Foundation import NSBundle, NSProcessInfo
+
+        bundle = NSBundle.mainBundle()
+        for info in (bundle.localizedInfoDictionary(), bundle.infoDictionary()):
+            if info is not None and info.get("CFBundleName") != name:
+                info["CFBundleName"] = name
+        NSProcessInfo.processInfo().setProcessName_(name)
+    except Exception:
+        pass
