@@ -56,7 +56,7 @@ ScoreReader runs its own MQTT broker that looks like ScoreConnect III's, so OSE 
 
 ## Data fields
 
-Everything is served at `/data.json`, and the dashboard lists every field with its current value. On/off values are `1`/`0`.
+`/data.json` (and XML/CSV, and the text files) carry only the fields used in the current sport; a field with no data yet is blank. The dashboard lists every field, including raw ones. To serve the raw fields too (every Daktronics RTD manual field, or every Sportzcast contract field for other brands), turn on **Settings → Advanced → Include every raw field**. On/off values are `1`/`0`.
 
 **Football**
 
@@ -72,13 +72,13 @@ Everything is served at `/data.json`, and the dashboard lists every field with i
 | `possession` | `H`, `V` or blank |
 | `home_poss`, `guest_poss` | `1`/`0` |
 
-**Soccer:** `clock`, `clock_running`, `home_score`, `guest_score`, `period`, `period_ordinal`, `home_shots`, `guest_shots`, `home_corners`, `guest_corners`, `horn`.
+**Soccer:** `clock`, `clock_running`, `home_score`, `guest_score`, `period`, `period_ordinal`, `home_shots`, `guest_shots`, `home_corners`, `guest_corners`, plus `horn` (current loop) or `home_saves`/`guest_saves` (RTD).
 
 **Fields follow the sport.** A basketball game has no `down_distance` or `ball_on`, and MQTT sends a basketball message, not a football one. On the built-in Daktronics decoder, football (console code 6601) and soccer (7601) use ScoreReader's own layouts; any other console code (basketball 1101/1103, baseball 5501, hockey 4401, volleyball 2101, wrestling 3101 …) switches automatically to ScoreConnect's layout for that sport. The default vMix field list is for football; for other sports, map their fields in `vmix.fields`.
 
 **Every sport** also has `home_name`, `guest_name`, `home_abbr`, `guest_abbr`, `home_color` and `guest_color` from Settings → Teams.
 
-**Other sports and brands** add their own fields (for example `shot_clock`, `home_fouls`, `balls`, `strikes`, `outs`), plus every field of the Sportzcast contract in snake_case. Daktronics RTD (the console's J6 port) also exposes every field in the Daktronics RTD manual.
+**Other sports and brands** add their own fields (for example `shot_clock`, `home_fouls`, `balls`, `strikes`, `outs`), and, with **Include every raw field** on, every field of the Sportzcast contract in snake_case (or, for Daktronics RTD, every field in the Daktronics RTD manual).
 
 ## Scoreboard brands
 

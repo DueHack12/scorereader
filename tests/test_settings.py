@@ -146,3 +146,45 @@ def test_settings_http_api(paths):
         assert e.value.code == 400
     finally:
         srv.shutdown()
+
+
+def _served(app):
+    app.data = app.build_data()
+    return app.public(app.current())
+
+
+def test_outputs_carry_only_the_sports_fields(paths):
+    app = make_app(saved_over={"sport": "soccer"})
+    d = _served(app)
+    assert {"clock", "home_score", "guest_score", "period", "home_shots", "home_corners", "home_name"} <= set(d)
+    assert "main_clock_time" not in d and "home_corner_kicks_1st_half" not in d and len(d) < 30
+    assert "main_clock_time" in app.current()          # the dashboard still sees everything
+    assert app.apply_settings({"output_all_fields": True})["ok"]
+    assert "main_clock_time" in _served(app)
+
+
+def test_football_rtd_keeps_down_and_distance(paths):
+    d = _served(make_app(saved_over={"sport": "football"}))
+    assert {"down", "to_go", "ball_on", "down_distance", "play_clock"} <= set(d) and "main_clock_time_2" not in d
+
+
+def test_brand_outputs_carry_only_the_sports_fields(paths):
+    app = make_app(saved_over={"scoreboard": {"protocol": "PIC55AA_Nevco_Basketball"}})
+    d = _served(app)
+    assert {"clock", "home_score", "home_fouls", "shot_clock", "home_name"} <= set(d)
+    assert "home_score_tens" not in d and "home_score_tens" in app.current()
+
+
+def test_data_xml_is_short(paths):
+    import urllib.request
+    from http.server import ThreadingHTTPServer
+    app = make_app(saved_over={"sport": "soccer"})
+    app.data = app.build_data()
+    port = _free_port()
+    srv = ThreadingHTTPServer(("127.0.0.1", port), app.make_handler())
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    try:
+        xml = urllib.request.urlopen(f"http://127.0.0.1:{port}/data.xml").read().decode()
+        assert "<home_shots" in xml and "<main_clock_time" not in xml and xml.count("<") < 70
+    finally:
+        srv.shutdown()

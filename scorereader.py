@@ -122,6 +122,9 @@ DEFAULT_CONFIG = {
     "text_files": {"enabled": False, "folder": "text_out"},
     "record_raw": True,
     "save_state": False,             # restore the last RTD buffer after a restart (scorereader_state.bin)
+    # data.json/xml/csv and text files carry only the fields used in the sport; True adds every raw field
+    # (Daktronics RTD manual fields, Sportzcast contract fields). The dashboard always shows everything.
+    "output_all_fields": False,
     "strict_daktronics_header": True,
 }
 
@@ -251,6 +254,7 @@ SETTINGS = {
     "record_raw": ("Files", "Record raw bytes to logs/", "bool", "live"),
     "save_state": ("Files", "Remember board values after a restart (RTD only)", "bool", "live"),
     "http_port": ("Advanced", "Dashboard / data.json port", "port", "restart"),
+    "output_all_fields": ("Advanced", "Include every raw field in data.json / XML / CSV", "bool", "live"),
 }
 
 
@@ -756,8 +760,14 @@ class SportMap:
         if sport == "football":
             down = str(g("down", "")).strip()
             togo = g("to_go", "")
+            s["down"], s["to_go"] = down, str(togo)
             s["down_distance"] = f"{down} & {togo}" if down and togo != "" else down
             s["ball_on"] = str(g("ball_on", ""))
+        if sport == "soccer":  # same names as the current-loop soccer output
+            for side in ("home", "guest"):
+                s[f"{side}_shots"] = str(g(f"{side}_shots_on_goal_total", "")).strip()
+                s[f"{side}_corners"] = str(g(f"{side}_corner_kicks_total", "")).strip()
+                s[f"{side}_saves"] = str(g(f"{side}_saves_total", "")).strip()
         if sport == "basketball":
             s["home_fouls"] = str(g("home_team_fouls", ""))
             s["guest_fouls"] = str(g("guest_team_fouls", ""))
@@ -781,14 +791,30 @@ def _snake(name: str) -> str:
     return "".join(out)
 
 
+class Data(dict):
+    """Output fields plus `raw_keys`: fields that aren't used by the sport's graphics (raw RTD/contract fields).
+    The dashboard shows everything; data.json/xml/csv and text files leave raw_keys out by default."""
+    raw_keys: frozenset = frozenset()
+
+    def copy(self):
+        d = Data(self)
+        d.raw_keys = self.raw_keys
+        return d
+
+    def public(self) -> dict:
+        return {k: v for k, v in self.items() if k not in self.raw_keys}
+
+
 def contract_to_data(contract: str, c: dict) -> dict:
     """ScoreReader output fields for a brand decoder's contract (scoreboards.contracts.flat), with a plain
     snake_case fallback so data still flows if the contracts module can't handle this contract."""
     try:
         from scoreboards import contracts
 
-        d = contracts.flat(contract, c)
-        if isinstance(d, dict):
+        full, raw = contracts.flat(contract, c, _split=True)
+        if isinstance(full, dict):
+            d = Data(full)
+            d.raw_keys = frozenset(raw)
             return d
     except Exception as e:
         if not getattr(contract_to_data, "_warned", False):
@@ -1887,8 +1913,16 @@ class App:
 
     # ---- data
     def current(self) -> dict:
+        """Every field (for the dashboard)."""
         with self.data_lock:
-            return dict(self.data)
+            d = self.data
+            return d.copy() if isinstance(d, Data) else dict(d)
+
+    def public(self, d: dict) -> dict:
+        """The fields served to graphics: only those used in the sport, unless output_all_fields is on."""
+        if self.cfg.get("output_all_fields") or not isinstance(d, Data):
+            return dict(d)
+        return d.public()
 
     def add_team_info(self, d: dict) -> None:
         """Team names/abbreviations/colors from Settings. A blank name falls back to what the console sent
@@ -1931,8 +1965,11 @@ class App:
             elif self.cl.packets:
                 d = self.cl.data()
             else:
-                d = self.sports.extract(self.cfg["sport"], self.decoder.snapshot())
-                d.setdefault("sport", self.cfg["sport"])
+                sport = self.cfg["sport"]
+                d = Data(self.sports.extract(sport, self.decoder.snapshot()))
+                friendly = set(self.sports.simple(sport, d))
+                d.raw_keys = frozenset(f["name"] for f in self.sports.fields(sport)) - friendly
+                d.setdefault("sport", sport)
         # single possession field for graphics: "H", "V" or "" (no possession lit on the board)
         if "home_poss" in d:
             d["possession"] = "H" if d.get("home_poss") else ("V" if d.get("guest_poss") else "")
@@ -1959,7 +1996,8 @@ class App:
                 tf = self.cfg.get("text_files", {})
                 if tf.get("enabled"):
                     try:
-                        write_text_files(os.path.join(DATA_DIR, tf.get("folder", "text_out")), d, text_cache)
+                        write_text_files(os.path.join(DATA_DIR, tf.get("folder", "text_out")), self.public(d),
+                                         text_cache)
                     except OSError as e:
                         log(f"text file write error: {e}")
                 if self.cfg.get("save_state") and time.time() - last_save > 2:
@@ -2042,7 +2080,7 @@ class App:
 
             def do_GET(self):
                 u = urllib.parse.urlparse(self.path)
-                d = app.current()
+                d = app.public(app.current())  # only the fields used in the sport (unless output_all_fields)
                 flat = {k: (("1" if v else "0") if isinstance(v, bool) else v) for k, v in d.items()}
                 if u.path in ("/", "/index.html"):
                     return self._send(200, DASHBOARD_HTML, "text/html; charset=utf-8")

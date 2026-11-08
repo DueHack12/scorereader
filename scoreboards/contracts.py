@@ -1399,7 +1399,34 @@ def _flag(ch):
     return str(ch).strip() != ""
 
 
-def flat(contract, c):
+class _Recorder(dict):
+    """dict that remembers which keys were written (to tell friendly aliases from raw contract fields)."""
+
+    def __init__(self, *a, **k):
+        super().__init__(*a, **k)
+        self.written = set()
+
+    def __setitem__(self, k, v):
+        self.written.add(k)
+        super().__setitem__(k, v)
+
+    def setdefault(self, k, v=None):
+        if k not in self:
+            self.written.add(k)
+        return super().setdefault(k, v)
+
+    def update(self, *a, **k):
+        for key, val in dict(*a, **k).items():
+            self[key] = val
+
+
+def raw_keys(contract, c):
+    """The keys of flat(contract, c) that are plain contract fields rather than ScoreReader's friendly fields
+    (clock, home_score, period, shot_clock, …)."""
+    return flat(contract, c, _split=True)[1]
+
+
+def flat(contract, c, _split=False):
     """snake_case version of every serialised property (blank characters become ""), plus friendly aliases."""
     v = _View(contract, c, None)
     sp = v.sp
@@ -1411,13 +1438,15 @@ def flat(contract, c):
     if contract == "SwimmingMixed":
         pt = _enum("PacketType", c.get("PacketType"))
         sub = "SwimmingEvent" if pt == 1 else "SwimmingRows"
-        out = flat(sub, _nested(contract, c, sub))
+        out, raw = flat(sub, _nested(contract, c, sub), _split=True)
         out["packet_type"] = pt
-        return out
+        return (out, raw) if _split else out
     for n in _FLAT_BASE:
         put(n, v[n])
     for n, _k, _e in sp.props:
         put(n, v[n])
+    raw = set(out)
+    out = _Recorder(out)
     ev = _event_name(contract, c)
     out["sport"] = ev.lower()
     out["clock"] = v["Clock"].strip()
@@ -1430,7 +1459,8 @@ def flat(contract, c):
     for k in ("home_poss", "guest_poss"):
         out.setdefault(k, False)
     out["possession"] = "H" if out["home_poss"] else "V" if out["guest_poss"] else ""
-    return out
+    result = dict(out)
+    return (result, raw - out.written) if _split else result
 
 
 def _period(v, o, name, ordinal=None):

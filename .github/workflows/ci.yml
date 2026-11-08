@@ -32,6 +32,9 @@ jobs:
 
   build:
     needs: test
+    # Build on pull requests (test copies), version tags (the release) and manual runs; a push to main
+    # only runs the tests, since the same code was already built in its pull request.
+    if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/v')
     strategy:
       fail-fast: false
       matrix:
