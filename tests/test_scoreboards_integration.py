@@ -182,3 +182,30 @@ def test_current_loop_football_and_soccer_stay_on_the_builtin_decoder(paths):
         d = app.build_data()
         assert d["sport"] == sport and d["protocol"] == "daktronics_current_loop"
         assert app.mqtt_contract(d) is None
+
+
+def test_switching_back_to_builtin_daktronics_restores_the_bot_setup(paths):
+    app = make_app("PIC55AA_Nevco_Basketball")
+    app.bot_plan()["on_configured"]()                       # bot was set up for Nevco
+    back = make_app("", scorelink=app.saved["scorelink"])
+    plan = back.bot_plan()
+    assert plan["configure"] is True and plan["commands"] is None   # None = the config's Daktronics commands
+    plan["on_configured"]()
+    assert make_app("", scorelink=back.saved["scorelink"]).bot_plan() == {}
+    assert make_app().bot_plan() == {}                       # never-configured installs are left alone, as before
+
+
+def test_electromech_hockey_end_to_end(paths):
+    import sys
+    sys.path.insert(0, __import__("os").path.dirname(__file__))
+    from test_sb_electromech import SEG, bcdv, cell
+    app = make_app("Electromech_Hockey")
+    plan = app.bot_plan()
+    assert plan["commands"] == [">M0X0X", ">T0", ">D0", ">M8I1N"] and plan["baud"] == 2400
+    app.reader._feed(cell(2, SEG["2"], flag=1) + cell(1, bcdv(1, 4)) + cell(0, bcdv(5, 9)) + cell(8, bcdv(0, 3))
+                     + cell(9, bcdv(1, 1)) + cell(4, bcdv(2, 5)))
+    d = app.build_data()
+    assert (d["sport"], d["clock"], d["period"], d["home_score"], d["guest_score"]) == ("hockey", "14:59", "2", "3", "11")
+    assert not {"down", "down_distance", "ball_on"} & set(d)
+    js, sb = sm.SportzcastMqttOutput(sr.deep_merge(sr.DEFAULT_CONFIG, {}))._payloads(d, app.mqtt_contract(d))
+    assert json.loads(js)["EventId"] == 5 and sb[:2] == "05"

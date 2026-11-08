@@ -118,6 +118,8 @@ DEFAULT_CONFIG = {
     "strict_daktronics_header": True,
 }
 
+BUILTIN_BOT_KEY = "daktronics-builtin"  # scorelink.configured_for after the bot is set up for the built-in decoders
+
 # Sources that are never written to scorereader_config.json, so the next normal start is always live data.
 RUNTIME_ONLY_SOURCES = ("demo", "replay")
 
@@ -1675,6 +1677,11 @@ class App:
         scorelink.config_commands at cfg["baud"], sent only when asked, exactly as before)."""
         pid = self.protocol_id()
         if not pid or self.vendor is None:
+            # Built-in Daktronics: if another brand reconfigured the bot, put the Daktronics set-up back once.
+            last = str(get_path(self.cfg, "scorelink.configured_for", "") or "")
+            if last and last != BUILTIN_BOT_KEY:
+                return {"label": "Daktronics All Sport 5000 (built-in)", "commands": None, "baud": None,
+                        "configure": True, "on_configured": self._remember_bot(BUILTIN_BOT_KEY)}
             return {}
         try:
             import scoreboards
@@ -1698,7 +1705,11 @@ class App:
                     "note": f"{label}: this wiring ({plan.get('hardware')}) is configured outside the ScoreLinkII; "
                             "ScoreReader only reads the data"}
         key = f"{pid}#{vc.get('hardware')}"
+        return {"label": label, "commands": plan["pic_commands"], "baud": plan["data_baud"],
+                "configure": get_path(self.cfg, "scorelink.configured_for", "") != key,
+                "on_configured": self._remember_bot(key)}
 
+    def _remember_bot(self, key: str):
         def remember():
             set_path(self.saved, "scorelink.configured_for", key)
             set_path(self.cfg, "scorelink.configured_for", key)
@@ -1706,8 +1717,7 @@ class App:
                 save_config(self.saved)
             except OSError:
                 pass
-        return {"label": label, "commands": plan["pic_commands"], "baud": plan["data_baud"],
-                "configure": get_path(self.cfg, "scorelink.configured_for", "") != key, "on_configured": remember}
+        return remember
 
     def _new_reader(self):
         r = Reader(self.cfg, self.decoder, threading.Event(), self.cl, vendor=self.vendor, bot=self.bot_plan())
