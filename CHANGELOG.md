@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+- **Shorter data.json / XML / CSV:** outputs now carry only the fields used in the sport (clock, scores, period, team names and colours, plus that sport's own fields such as down & distance, shots and corners, or fouls and shot clock). Fields with no data yet are blank. The raw Daktronics RTD and Sportzcast contract fields no longer appear unless **Settings → Advanced → Include every raw field** is on; the dashboard still lists everything.
+- **Soccer over RTD:** now has `home_shots`, `home_corners` and `home_saves` (and guest), the same names as current-loop soccer.
+
 ## 2.1.0 — 2026-11-08
 - **Mac app:** the Mac download is now `ScoreReader-macos-arm64.dmg` with `ScoreReader.app` (drag it to Applications). It runs in the menu bar and Dock with its own name and logo, without a Terminal window, and opens the dashboard when it starts. Its settings and logs are in `~/Library/Application Support/ScoreReader`.
 - **Logo:** a new ScoreReader icon (a seven-segment S with a signal), used for the Windows app, the Mac Dock and menu bar, and the dashboard's browser tab.
