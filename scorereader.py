@@ -1254,8 +1254,8 @@ class Reader(threading.Thread):
                     if down > 4:
                         pos_home, down, togo = not pos_home, 1, 10
                 play = 40
-            pk += put(48, 20, "FAIRFIELD PREP") + put(68, 20, "VISITORS")
-            pk += put(88, 10, "PREP") + put(98, 10, "VIS")
+            pk += put(48, 20, "HOME TEAM") + put(68, 20, "VISITORS")
+            pk += put(88, 10, "HOME") + put(98, 10, "VIS")
             pk += put(108, 4, home, right=True) + put(112, 4, guest, right=True)
             pk += put(122, 2, 3, right=True) + put(130, 2, 2, right=True)
             pk += put(142, 2, q, right=True)

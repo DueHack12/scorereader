@@ -10,7 +10,7 @@
 - **Fixed:** changing a setting could change the built-in defaults (shared nested dicts in `deep_merge`).
 
 ## 1.0.0 — 2026-11-07
-First release. It replaced ScoreConnect III 1.5.0.1 after that update broke the ScoreBot, and has since been used for football and soccer at Rafferty Stadium.
+First release. It replaced ScoreConnect III 1.5.0.1 after that update broke the ScoreBot, and has since been used live for football and soccer.
 
 - **ScoreLinkII/ScoreBot support:**
   - Talks to the bot directly over USB (MCP2221): switches GP2 between command and data mode, and probes or configures the PIC.

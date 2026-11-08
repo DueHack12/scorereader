@@ -59,7 +59,7 @@ contract is empty (`EventId: AutoDetect`). Table: 1101/1103 Basketball, 6601 Foo
 Volleyball, 5501 Baseball, **7701 Soccer**, 0003 Baseball1600, 3101/3102 Wrestling3000. Not selectable by autodetect:
 FootballCode6103, 3000_Baseball, Pitch_Clock, Waterpolo2000, Hockey9405 and Softball codes.
 
-**ScoreConnect 1.3.0.21's autodetect table maps soccer to code 7701, while the Rafferty Stadium board sends 7601.** With
+**ScoreConnect 1.3.0.21's autodetect table maps soccer to code 7701, while the reference board (captured in `tests/test_current_loop.py`) sends 7601.** With
 that board autodetect never selects soccer; choose `Daktronics_Soccer` explicitly (or add 7601 to `DAK_CODES`).
 `ProtocolV3`'s autodetect also reports the choice through `Autodetect.selected` and the `on_detect` callback.
 

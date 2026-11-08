@@ -7,7 +7,7 @@ import pytest
 
 import sportzcast_mqtt as sm
 
-CFG = {"mqtt": {"bot_number": 175, "home_team_name": "PREP", "guest_team_name": "VISITORS"}}
+CFG = {"mqtt": {"bot_number": 175, "home_team_name": "EAGLES", "guest_team_name": "VISITORS"}}
 
 
 def test_football_payloads():
@@ -23,7 +23,7 @@ def test_football_payloads():
     assert len(sb) == 150
     assert sb[0:2] == "02" and sb[2:6] == " 432" and sb[8:10] == "25"
     assert sb[11:13] == "14" and sb[14:16] == " 7" and sb[16] == "<" and sb[20] == "3" and sb[25] == "2"
-    assert sb[26:34] == "PREP    " and sb[116:118] == "R:" and sb[132:138] == "0000AF"
+    assert sb[26:34] == "EAGLES  " and sb[116:118] == "R:" and sb[132:138] == "0000AF"
 
 
 def test_soccer_payloads():
@@ -36,7 +36,7 @@ def test_soccer_payloads():
     assert (j["HomeCornerKicks"], j["GuestCornerKicks"], j["GuestShots"]) == ("3", "14", "12")
     assert "Down" not in j
     assert sb[0:2] == "08" and sb[11:13] == " 5" and sb[17:19] == " 1" and sb[19] == "3"
-    assert sb[22] == "4" and sb[48] == "1" and sb[29] == "1" and sb[31:39] == "PREP    "
+    assert sb[22] == "4" and sb[48] == "1" and sb[29] == "1" and sb[31:39] == "EAGLES  "
 
 
 def _free_port():

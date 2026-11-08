@@ -468,7 +468,7 @@ def test_autodetect_switches_and_resets():
     p.feed(code("1101") + fr(12, {9: S("21")}, size=16))
     c = p.snapshot()
     assert p.contract_name == "Basketball" and "Quarter" not in c and c["HomeScoreOnes"] == "1"
-    p.feed(code("7601"))  # the Rafferty board's soccer code is not in ScoreConnect's table
+    p.feed(code("7601"))  # the reference board's soccer code is not in ScoreConnect's table
     assert p.decoder.selected == "Daktronics_Basketball"
     p.feed(code("7701"))
     assert p.contract_name == "Soccer" and changes[-1] == "Daktronics_Soccer"

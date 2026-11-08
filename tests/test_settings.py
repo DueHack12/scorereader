@@ -45,7 +45,7 @@ def test_demo_and_replay_are_session_only(paths):
     app = make_app()
     assert app.apply_settings({"source": "demo"})["ok"]
     assert app.cfg["source"] == "demo" and app.live_source() == "scorelink"
-    assert app.apply_settings({"teams.home_name": "PREP"})["ok"]
+    assert app.apply_settings({"teams.home_name": "EAGLES"})["ok"]
     assert on_disk()["source"] == "scorelink"
     assert app.apply_settings({"source": "serial"})["ok"]
     assert on_disk()["source"] == "serial"
@@ -58,7 +58,7 @@ def test_config_file_left_in_demo_by_old_version_goes_back_to_scorebot(paths):
 
 def test_invalid_settings_change_nothing(paths):
     app = make_app()
-    res = app.apply_settings({"teams.home_name": "PREP", "vmix.port": "99999", "nope": 1, "teams.home_color": "blue"})
+    res = app.apply_settings({"teams.home_name": "EAGLES", "vmix.port": "99999", "nope": 1, "teams.home_color": "blue"})
     assert not res["ok"] and set(res["errors"]) == {"vmix.port", "nope", "teams.home_color"}
     assert app.cfg["teams"]["home_name"] == "" and not (paths / "scorereader_config.json").exists()
     assert not app.apply_settings({"replay_file": "../../etc/passwd"})["ok"]
@@ -83,18 +83,18 @@ def test_source_change_clears_old_values(paths):
 
 
 def test_team_names_in_current_loop_output(paths):
-    app = make_app(saved_over={"teams": {"home_name": "FAIRFIELD PREP", "guest_abbr": "VIS", "home_color": "#AA0000"}})
+    app = make_app(saved_over={"teams": {"home_name": "EAGLES ACADEMY", "guest_abbr": "VIS", "home_color": "#AA0000"}})
     app.cl.feed(frame(0xFE, b"66015000430"))
     d = app.build_data()
-    assert d["home_name"] == "FAIRFIELD PREP" and d["guest_name"] == "GUEST"
+    assert d["home_name"] == "EAGLES ACADEMY" and d["guest_name"] == "GUEST"
     assert d["guest_abbr"] == "VIS" and d["home_color"] == "#AA0000"
     js, sb = sm.build_payloads(d, app.cfg)
-    assert json.loads(js)["HomeTeamName"] == "FAIRFIELD PREP" and sb[26:34] == "FAIRFIEL"
+    assert json.loads(js)["HomeTeamName"] == "EAGLES ACADEMY" and sb[26:34] == "EAGLES A"
 
 
 def test_team_name_fallbacks(paths):
-    legacy = make_app(saved_over={"mqtt": {"enabled": False, "home_team_name": "JESUITS"}})
-    assert legacy.build_data()["home_name"] == "JESUITS"
+    legacy = make_app(saved_over={"mqtt": {"enabled": False, "home_team_name": "TIGERS"}})
+    assert legacy.build_data()["home_name"] == "TIGERS"
     rtd = make_app()
     rtd.decoder.feed(sr.encode_rtd_packet(47, "CONSOLE NAME".ljust(20)))  # RTD football home name (pos 48)
     assert rtd.build_data()["home_name"] == "CONSOLE NAME"
@@ -140,7 +140,7 @@ def test_settings_http_api(paths):
         with pytest.raises(urllib.error.HTTPError) as e:
             post({"teams.home_name": "X"}, header=False)
         assert e.value.code == 403 and app.cfg["teams"]["home_name"] == ""
-        assert json.load(post({"teams.home_name": "PREP"}))["ok"] and on_disk()["teams"]["home_name"] == "PREP"
+        assert json.load(post({"teams.home_name": "EAGLES"}))["ok"] and on_disk()["teams"]["home_name"] == "EAGLES"
         with pytest.raises(urllib.error.HTTPError) as e:
             post({"baud": "fast"})
         assert e.value.code == 400

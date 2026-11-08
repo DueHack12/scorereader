@@ -48,11 +48,11 @@ def test_builtin_path_is_unchanged_when_no_brand_is_chosen(paths):
 
 
 def test_brand_decoder_feeds_outputs(paths):
-    app = make_app("PIC55AA_Nevco_Basketball", teams={"home_name": "PREP"})
+    app = make_app("PIC55AA_Nevco_Basketball", teams={"home_name": "EAGLES"})
     assert app.vendor is not None and app.reader.vendor is app.vendor
     app.reader._feed(b"\x00garbage" + make_frame(CODE_NEVCO, bytes(40)))
     d = app.build_data()
-    assert d["protocol"] == "PIC55AA_Nevco_Basketball" and d["home_name"] == "PREP"
+    assert d["protocol"] == "PIC55AA_Nevco_Basketball" and d["home_name"] == "EAGLES"
     assert app.state_json()["contract"][0]["v"] == app.vendor.contract_name
 
 

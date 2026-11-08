@@ -82,7 +82,7 @@ Everything is served at `/data.json`, and the dashboard lists every field with i
 
 ScoreReader can decode about 300 brand/sport layouts, which covers everything ScoreConnect III supports. Pick one in **Settings → Scoreboard**: the brand, then the sport or console layout, then the wiring if the brand has more than one. You can also start with `--scoreboard ID`; `--list-scoreboards` prints every ID.
 
-- **Daktronics All Sport 5000 (built-in)** is the default. It detects football or soccer from the console by itself and handles the Rafferty Stadium board's quirks.
+- **Daktronics All Sport 5000 (built-in)** is the default. It detects football or soccer from the console by itself and handles known board quirks (such as soccer corners on the stats panel).
 - **Bot setup:** when you choose another brand, ScoreReader sets up the ScoreBot for it the first time it connects, using the same commands and speed ScoreConnect uses, and remembers that. **Re-init bot** sends the setup again.
 - **Not yet tested on real boards:** the other brands were written from ScoreConnect's decoder tables and tested with made-up data. If something reads wrong, send a capture (`logs/raw_*.bin`) along with the brand and sport. Each brand's wire format is in [vendors/](vendors/).
 

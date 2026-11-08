@@ -972,7 +972,7 @@ _AUTO_IDS = [k for k in _DECODERS if k not in (
     "Daktronics_Waterpolo2000", "Daktronics_Hockey5000Code9405")]
 
 # Console code (ASCII at address 0xFE, p[5..8]) -> vendor-sport id. ScoreConnect 1.3.0.21 lists soccer as
-# 7701; the Rafferty Stadium board sends 7601, which is not in the table, so it is never auto-detected.
+# 7701; the reference board in tests/test_current_loop.py sends 7601, which is not in the table, so it is never auto-detected.
 DAK_CODES = {
     "1101": "Daktronics_Basketball", "1103": "Daktronics_Basketball", "6601": "Daktronics_Football",
     "4401": "Daktronics_Hockey5000", "4402": "Daktronics_Hockey5000", "2101": "Daktronics_Volleyball",

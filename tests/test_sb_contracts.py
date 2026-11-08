@@ -55,9 +55,9 @@ def test_timestamp_forms():
 
 
 def test_origin_and_channel_meta():
-    j = js("Football", {}, origin=5, channel="3", venue_name="Rafferty", venue_id=7)
+    j = js("Football", {}, origin=5, channel="3", venue_name="Stadium", venue_id=7)
     assert j["OriginTypeId"] == 5 and j["OriginType"] == "Local emulated"
-    assert j["InboundChannelNumber"] == "3" and j["VenueName"] == "Rafferty" and j["VenueId"] == 7
+    assert j["InboundChannelNumber"] == "3" and j["VenueName"] == "Stadium" and j["VenueId"] == 7
 
 
 def test_team_name_meta_overrides_contract():

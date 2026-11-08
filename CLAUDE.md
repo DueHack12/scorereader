@@ -3,7 +3,7 @@
 Context for Claude Code (or any contributor) picking up this project.
 
 ## What this is
-ScoreReader replaces Sportzcast **ScoreConnect III** for a high-school broadcast crew (Fairfield Prep Media, Rafferty Stadium). It reads a **Sportzcast ScoreLinkII/ScoreBot** over USB, decodes a **Daktronics All Sport 5000** console (plus every other brand ScoreConnect supports, via `scoreboards/`), and publishes the data to vMix (HTTP JSON/XML/CSV or TCP `SetText`) and to OSE through a **ScoreConnect-compatible MQTT broker**.
+ScoreReader replaces Sportzcast **ScoreConnect III** for a high-school broadcast crew. It reads a **Sportzcast ScoreLinkII/ScoreBot** over USB, decodes a **Daktronics All Sport 5000** console (plus every other brand ScoreConnect supports, via `scoreboards/`), and publishes the data to vMix (HTTP JSON/XML/CSV or TCP `SetText`) and to OSE through a **ScoreConnect-compatible MQTT broker**.
 
 **Windows is the main platform; macOS, Linux and Raspberry Pi are supported too.** It's used live on game days, so reliability beats features. Never break a working sport layout while adding another.
 
@@ -33,7 +33,7 @@ ScoreReader replaces Sportzcast **ScoreConnect III** for a high-school broadcast
 ## Conventions and gotchas
 - **Dependencies:** keep runtime deps to `pyserial` only (`hidapi` only on macOS/Linux). `hidapi` fails to build on new Python versions on Windows, which is why `WinHID` uses ctypes. Keep `scorereader.py` importable without `hid`.
 - **ScoreConnect compatibility:** MQTT payload names and positions must stay byte-compatible with ScoreConnect III, because OSE consumes them. Check `docs/PROTOCOL.md §4` before renaming anything.
-- **Board quirk:** Rafferty Stadium's soccer board sends zeros for corners on address 13 (where ScoreConnect reads them), so corners come from the address 72 stats panel. Don't "fix" this back.
+- **Board quirk:** the reference soccer board (the one `tests/test_current_loop.py` was captured from) sends zeros for corners on address 13 (where ScoreConnect reads them), so corners come from the address 72 stats panel. Don't "fix" this back.
 - **The console only transmits on change.** With `save_state` on (off by default), `scorereader_state.bin` keeps the last RTD buffer between runs.
 - **Vendor decoders are unverified on hardware.** They follow ScoreConnect's tables (Windows build preferred over the older Mac build), quirks included; each `docs/vendors/*.md` lists them. Fix them only against a real capture. `Protocol.snapshot()` is the pure decoded contract; `full_contract()` adds the emulated clock status.
 - **Never edit a user's `scorereader_config.json` in the repo.** It's gitignored and auto-created from `DEFAULT_CONFIG`, and `deep_merge` adds new keys to old configs.
