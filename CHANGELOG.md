@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.1.1 — 2026-11-08
 - **Shorter data.json / XML / CSV:** outputs now carry only the fields used in the sport (clock, scores, period, team names and colours, plus that sport's own fields such as down & distance, shots and corners, or fouls and shot clock). Fields with no data yet are blank. The raw Daktronics RTD and Sportzcast contract fields no longer appear unless **Settings → Advanced → Include every raw field** is on; the dashboard still lists everything.
 - **Soccer over RTD:** now has `home_shots`, `home_corners` and `home_saves` (and guest), the same names as current-loop soccer.
 
