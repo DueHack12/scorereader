@@ -42,14 +42,21 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from xml.sax.saxutils import escape as xml_escape
 
-__version__ = "2.0.0"
+__version__ = "2.1.0"
 
 APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0] if getattr(sys, "frozen", False) else __file__))
 RES_DIR = getattr(sys, "_MEIPASS", APP_DIR)  # PyInstaller support
-CONFIG_PATH = os.path.join(APP_DIR, "scorereader_config.json")
+# A Mac app (ScoreReader.app) can't write inside itself (macOS may even run it from a read-only copy), so its
+# settings, logs and text files live in ~/Library/Application Support/ScoreReader. Everything else keeps them
+# next to the program, as before.
+MAC_APP = sys.platform == "darwin" and getattr(sys, "frozen", False) and ".app/Contents/" in APP_DIR
+DATA_DIR = (os.path.join(os.path.expanduser("~"), "Library", "Application Support", "ScoreReader")
+            if MAC_APP else APP_DIR)
+ASSETS_DIR = os.path.join(RES_DIR, "assets")  # icon.svg / icon.png / menubar.png
+CONFIG_PATH = os.path.join(DATA_DIR, "scorereader_config.json")
 FIELDS_PATH = os.path.join(RES_DIR, "daktronics_fields.json")
-STATE_PATH = os.path.join(APP_DIR, "scorereader_state.bin")
-LOG_DIR = os.path.join(APP_DIR, "logs")
+STATE_PATH = os.path.join(DATA_DIR, "scorereader_state.bin")
+LOG_DIR = os.path.join(DATA_DIR, "logs")
 
 SCORELINK_VID, SCORELINK_PID = 0x04D8, 0x00DD
 
@@ -131,8 +138,36 @@ _PRINT_LOCK = threading.Lock()
 def log(msg: str) -> None:
     line = f"{_dt.datetime.now():%H:%M:%S} {msg}"
     with _PRINT_LOCK:
-        print(line, flush=True)
+        try:
+            print(line, flush=True)
+        except (OSError, ValueError, AttributeError):
+            pass  # the console window was closed (Mac menu bar keeps running): the line still reaches the dashboard
     STATUS.add_log(line)
+
+
+def detach_console(path: str) -> None:
+    """Send further console output to a log file, so the program keeps running after its window is closed."""
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        f = open(path, "a", encoding="utf-8", buffering=1)
+    except OSError:
+        f = open(os.devnull, "w")
+    with _PRINT_LOCK:
+        sys.stdout = sys.stderr = f
+
+
+def set_window_title(title: str) -> None:
+    """Name the console window/tab, so the taskbar (Windows) or Terminal (Mac/Linux) shows "ScoreReader"."""
+    try:
+        if sys.platform == "win32":
+            import ctypes
+
+            ctypes.windll.kernel32.SetConsoleTitleW(title)
+        elif sys.stdout is not None and sys.stdout.isatty():
+            sys.stdout.write(f"\033]0;{title}\007")
+            sys.stdout.flush()
+    except Exception:
+        pass
 
 
 def deep_merge(base: dict, over: dict) -> dict:
@@ -155,6 +190,7 @@ def load_config() -> dict:
 
 
 def save_config(cfg: dict) -> None:
+    os.makedirs(os.path.dirname(CONFIG_PATH) or ".", exist_ok=True)
     tmp = CONFIG_PATH + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(cfg, f, indent=2, ensure_ascii=False)
@@ -1441,6 +1477,7 @@ def write_text_files(folder: str, data: dict, cache: dict):
 
 # --------------------------------------------------------------------------- web server
 DASHBOARD_HTML = r"""<!doctype html><html><head><meta charset="utf-8"><title>ScoreReader</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
 :root{--bg:#0e1116;--card:#171b22;--ink:#e8ecf1;--mut:#8a94a3;--ok:#2fbf71;--bad:#e5484d;--warn:#f5a524;--acc:#5b8def}
@@ -1807,7 +1844,7 @@ class App:
             "scoreboards": self.scoreboards_json(),
             "live_source": self.live_source(),
             "config_path": CONFIG_PATH,
-            "text_folder": os.path.join(APP_DIR, get_path(self.cfg, "text_files.folder", "text_out")),
+            "text_folder": os.path.join(DATA_DIR, get_path(self.cfg, "text_files.folder", "text_out")),
         }
 
     def apply_settings(self, changes: dict) -> dict:
@@ -1922,7 +1959,7 @@ class App:
                 tf = self.cfg.get("text_files", {})
                 if tf.get("enabled"):
                     try:
-                        write_text_files(os.path.join(APP_DIR, tf.get("folder", "text_out")), d, text_cache)
+                        write_text_files(os.path.join(DATA_DIR, tf.get("folder", "text_out")), d, text_cache)
                     except OSError as e:
                         log(f"text file write error: {e}")
                 if self.cfg.get("save_state") and time.time() - last_save > 2:
@@ -2023,6 +2060,14 @@ class App:
                     w.writerow(flat.keys())
                     w.writerow(flat.values())
                     return self._send(200, s.getvalue(), "text/csv")
+                if u.path in ("/favicon.svg", "/favicon.ico", "/icon.png"):
+                    name, ctype = (("icon.png", "image/png") if u.path == "/icon.png"
+                                   else ("icon.svg", "image/svg+xml"))
+                    try:
+                        with open(os.path.join(ASSETS_DIR, name), "rb") as f:
+                            return self._send(200, f.read(), ctype)
+                    except OSError:
+                        return self._send(404, "not found", "text/plain")
                 if u.path == "/api/state":
                     return self._send(200, json.dumps(app.state_json()), "application/json")
                 if u.path == "/api/settings":
@@ -2063,6 +2108,22 @@ class App:
         return H
 
     def run(self):
+        """Start everything and block until Ctrl+C."""
+        self.start()
+        try:
+            while not self.stop.is_set():
+                time.sleep(1)
+        except KeyboardInterrupt:
+            log("Stopping…")
+        finally:
+            self.shutdown()
+
+    @property
+    def dashboard_url(self) -> str:
+        return f"http://localhost:{int(self.cfg['http_port'])}/"
+
+    def start(self):
+        """Start the source, outputs and web server in background threads, then return."""
         if self.cfg.get("save_state"):
             self.decoder.load(STATE_PATH)
         self.running = True
@@ -2075,25 +2136,27 @@ class App:
         threading.Thread(target=self.update_loop, daemon=True).start()
         port = int(self.cfg["http_port"])
         srv = ThreadingHTTPServer(("0.0.0.0", port), self.make_handler())
+        self._srv = srv
         threading.Thread(target=srv.serve_forever, daemon=True).start()
         log(f"Dashboard:        http://localhost:{port}/")
         log(f"vMix data source: http://localhost:{port}/data.json   (also /data.xml, /data.csv)")
         if self.mqtt:
             log(f"MQTT topics:      bot/{self.mqtt.bot}/json, bot/{self.mqtt.bot}/sbdata, bot/{self.mqtt.bot}/raw")
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            log("Stopping…")
-        finally:
-            self.stop.set()
-            self.reader.stop.set()
+
+    def shutdown(self):
+        if getattr(self, "_shut", False):
+            return
+        self._shut = True
+        self.stop.set()
+        self.reader.stop.set()
+        srv = getattr(self, "_srv", None)
+        if srv is not None:
             srv.shutdown()
-            if self.cfg.get("save_state"):
-                try:
-                    self.decoder.save(STATE_PATH)
-                except OSError:
-                    pass
+        if self.cfg.get("save_state"):
+            try:
+                self.decoder.save(STATE_PATH)
+            except OSError:
+                pass
 
 
 # --------------------------------------------------------------------------- CLI tools
@@ -2197,6 +2260,7 @@ def main():
                     help="scoreboard brand+sport id (see --list-scoreboards); this session only")
     ap.add_argument("--list-scoreboards", action="store_true", help="list supported scoreboard brands/sports and exit")
     ap.add_argument("--replay", metavar="FILE", help="replay a raw capture from logs/raw_*.bin")
+    ap.add_argument("--no-menubar", action="store_true", help="Mac: don't show the ScoreReader menu bar icon")
     ap.add_argument("--fresh", action="store_true", help="ignore the saved last-known scoreboard state")
     ap.add_argument("--list-ports", action="store_true", help="list serial ports and exit")
     ap.add_argument("--probe", action="store_true", help="talk to the ScoreLinkII PIC (version/config) and exit")
@@ -2204,7 +2268,8 @@ def main():
                     help="re-send the ScoreConnect config commands (Daktronics football) to the bot and exit")
     ap.add_argument("--sniff", type=float, nargs="?", const=20, metavar="SECONDS",
                     help="hex-dump raw bytes from the bot (default 20s) and exit")
-    a = ap.parse_args()
+    # Old macOS versions pass a "-psn_…" process serial number to apps opened from Finder.
+    a = ap.parse_args([x for x in sys.argv[1:] if not x.startswith("-psn_")])
 
     if hasattr(signal, "SIGTERM"):  # systemd / launchd stop = Ctrl+C: shut down cleanly
         def _on_term(*_):
@@ -2260,7 +2325,33 @@ def main():
     if saved.get("source") in RUNTIME_ONLY_SOURCES:
         print(f"NOTE: scorereader_config.json has \"source\": \"{saved['source']}\" - that is not live scoreboard data. "
               "Pick the live source in Settings.")
-    App(cfg, saved=saved).run()
+    set_window_title(f"ScoreReader {__version__}")
+    if MAC_APP:  # no Terminal window: keep the log in a file (menu bar > Open logs folder)
+        detach_console(os.path.join(LOG_DIR, "scorereader.log"))
+    app = App(cfg, saved=saved)
+    if sys.platform == "darwin" and not a.no_menubar:
+        try:
+            import menubar
+
+            if menubar.available():
+                app.start()
+                if MAC_APP:  # opened from Finder/Launchpad: show the dashboard so it's clear it started
+                    import webbrowser
+
+                    threading.Timer(1.5, webbrowser.open, args=(app.dashboard_url,)).start()
+                return menubar.run(app)  # owns the main thread until Quit
+        except Exception as e:
+            log(f"Menu bar icon unavailable ({e}); running in this window only")
+            if app.running:
+                try:
+                    while not app.stop.is_set():
+                        time.sleep(1)
+                except KeyboardInterrupt:
+                    log("Stopping…")
+                finally:
+                    app.shutdown()
+                return
+    app.run()
 
 
 if __name__ == "__main__":

@@ -27,7 +27,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - run: python -m pip install -r requirements.txt -r requirements-dev.txt
-      - run: python -m pyflakes scorereader.py sportzcast_mqtt.py scoreboards
+      - run: python -m pyflakes scorereader.py sportzcast_mqtt.py menubar.py scoreboards
       - run: python -m pytest -q
 
   build:
@@ -55,21 +55,43 @@ jobs:
         shell: bash
         run: |
           SEP=":"; [ "$RUNNER_OS" = "Windows" ] && SEP=";"
-          python -m PyInstaller --noconfirm --onefile --name ScoreReader \
-            --hidden-import sportzcast_mqtt --collect-submodules scoreboards \
-            --add-data "daktronics_fields.json${SEP}." --add-data "scoreboards/catalog.json${SEP}scoreboards" \
-            scorereader.py
+          COMMON=(--noconfirm --name ScoreReader --hidden-import sportzcast_mqtt --collect-submodules scoreboards
+                  --add-data "daktronics_fields.json${SEP}." --add-data "scoreboards/catalog.json${SEP}scoreboards"
+                  --add-data "assets${SEP}assets")
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            # ScoreReader.app: menu bar + Dock, no Terminal window
+            python -m PyInstaller "${COMMON[@]}" --windowed --icon assets/icon.icns \
+              --osx-bundle-identifier io.github.scorereader \
+              --hidden-import menubar --hidden-import rumps --hidden-import AppKit --hidden-import Foundation \
+              scorereader.py
+            VERSION=$(python scorereader.py --version | awk '{print $2}')
+            PLIST=dist/ScoreReader.app/Contents/Info.plist
+            /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$PLIST"
+            /usr/libexec/PlistBuddy -c "Add :CFBundleVersion string $VERSION" "$PLIST" 2>/dev/null || \
+              /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $VERSION" "$PLIST"
+            /usr/libexec/PlistBuddy -c "Add :NSHighResolutionCapable bool true" "$PLIST" 2>/dev/null || true
+            codesign --force --deep --sign - dist/ScoreReader.app   # ad-hoc signature (Info.plist changed)
+          else
+            EXTRA=""; [ "$RUNNER_OS" = "Windows" ] && EXTRA="--icon assets/icon.ico"
+            python -m PyInstaller "${COMMON[@]}" --onefile $EXTRA scorereader.py
+          fi
       - name: Smoke test
         shell: bash
         run: |
-          EXE=dist/ScoreReader; [ "$RUNNER_OS" = "Windows" ] && EXE=dist/ScoreReader.exe
+          EXE=dist/ScoreReader
+          [ "$RUNNER_OS" = "Windows" ] && EXE=dist/ScoreReader.exe
+          [ "$RUNNER_OS" = "macOS" ] && EXE=dist/ScoreReader.app/Contents/MacOS/ScoreReader
           "$EXE" --version
+          "$EXE" --list-scoreboards | tail -1
       - name: Package
         shell: bash
         run: |
           mkdir -p pkg
           if [ "$RUNNER_OS" = "Windows" ]; then
             cp dist/ScoreReader.exe "pkg/${{ matrix.name }}.exe"
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            mkdir -p dmg && cp -R dist/ScoreReader.app dmg/ && ln -s /Applications dmg/Applications
+            hdiutil create -volname ScoreReader -srcfolder dmg -ov -format UDZO "pkg/${{ matrix.name }}.dmg"
           else
             cp linux/99-scorebot.rules linux/scorebot-blacklist.conf dist/ 2>/dev/null || true
             tar -C dist -czf "pkg/${{ matrix.name }}.tar.gz" .
