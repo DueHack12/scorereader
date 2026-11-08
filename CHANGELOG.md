@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.1.2 — 2026-11-08
 - **Windows download is now a `.zip`:** `ScoreReader-windows-x64.zip` contains a `ScoreReader` folder with `ScoreReader.exe`; extract it and run the `.exe`. The single self-extracting `.exe` was being flagged by Windows Defender as a virus (a false positive common to packaged Python apps); a plain folder, plus real version details on the `.exe` (Properties > Details), makes that much less likely.
 - **Release version:** release builds take their version from the tag, so the apps always report the right version (2.1.1 shipped saying 2.1.0).
 
