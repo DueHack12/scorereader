@@ -9,7 +9,7 @@ layout `F` also reads as blank.
 |---|---|---|
 | V2 | `SpectrumV2_Basketball` | text line, first byte `>`, ends with LF (a leading or empty line is rejected) |
 | V2W | `SpectrumV2W_*` | data ends with LF; data length must be 35, 41 or 44 |
-| V2E | `SpectrumV2E_*` | frame ends `LF NUL`; length counted up to and including the LF must be 36 or 44 |
+| V2E | `SpectrumV2E_*`, `SpectrumMSX_Hockey` | frame ends `LF NUL`; length counted up to and including the LF must be 36 or 44 |
 | MS250 | `SpectrumMS250_Baseball` | 13 bytes starting `00 0F`, no terminator |
 
 Garbage glued to the front of a V2W/V2E frame changes its length and the frame is rejected (as in
@@ -61,6 +61,20 @@ bottom, else a guest entry = top; none = inning 01, top).
 Inning ones = low nibble of byte 2; home runs tens/ones bytes 3/4; guest runs bytes 5/6 (low nibbles).
 Balls byte 10 & 7: 0,1,3,7 = 0,1,2,3. Strikes byte 11 & 3: 0,1,3 = 0,1,2. Outs byte 12 & 3: 0,1,3 = 0,1,2.
 Other patterns leave the previous value. Top/bottom: byte 11 bit 2 clear = T, set = B. No inning tens.
+
+## MSX hockey (V2E framing)
+Clock minutes 1-2, seconds 3-4, home score 5-6, guest score 7-8, period 23 (all V2E ASCII). Byte 12: after
+subtracting 7 when >= 64, bit 3 set = `MM:SS`, else `SS.t` from bytes 1-3. Possession: byte 12 == `5` home,
+== `A` guest (raw byte). Penalties only in 44-byte frames (minutes tens always blank):
+
+| Slot | Player tens/ones | Minutes ones | Seconds tens/ones |
+|---|---|---|---|
+| Home 1 | 20, 21 | 22 | 24, 25 |
+| Home 2 | 31, 32 | 33 | 34, 35 |
+| Guest 1 | 26, 27 | 28 | 29, 30 |
+| Guest 2 | 36, 37 | 38 | 39, 40 |
+
+Taken from the newer Windows ScoreConnect decompile; shots, saves and timeouts are not provided.
 
 ## Quirks reproduced
 * V2W football tests `(byte12 & 8) == 1`, which is never true, so its clock is always `MM:SS`.

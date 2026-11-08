@@ -1,0 +1,17 @@
+# Template used by linux/install.sh --service (@DIR@, @PY@ and @USER@ are filled in).
+[Unit]
+Description=ScoreReader (scoreboard data for vMix and OSE)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=@USER@
+WorkingDirectory=@DIR@
+ExecStart=@PY@ @DIR@/scorereader.py
+Restart=always
+RestartSec=3
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

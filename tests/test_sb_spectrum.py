@@ -30,7 +30,7 @@ def run(pid, data):
 
 def test_all_ids_registered():
     assert set(sp.PROTOCOLS) == {
-        "SpectrumMS250_Baseball", "SpectrumV2E_Baseball", "SpectrumV2E_Basketball", "SpectrumV2E_Football",
+        "SpectrumMS250_Baseball", "SpectrumMSX_Hockey", "SpectrumV2E_Baseball", "SpectrumV2E_Basketball", "SpectrumV2E_Football",
         "SpectrumV2E_Soccer", "SpectrumV2W_Baseball", "SpectrumV2W_Basketball", "SpectrumV2W_Football",
         "SpectrumV2W_Soccer", "SpectrumV2W_Volleyball", "SpectrumV2_Basketball"}
 
@@ -254,3 +254,45 @@ def test_ms250_unknown_lamp_pattern_keeps_value_and_framing():
     assert pr.packets == 2 and pr.snapshot()["Balls"] == "1"
     pr.feed(fr[:12])  # incomplete frame waits
     assert pr.packets == 2
+
+
+# ---------------------------------------------------------------- MSX hockey (V2E framing)
+HOCKEY = {**put("1530", 1), **put("0312", 5), 23: "2", 12: 8}
+
+
+def test_msx_hockey_without_penalties():
+    pr, c = run("SpectrumMSX_Hockey", v2e(36, HOCKEY))
+    assert pr.packets == 1 and pr.contract_name == "HockeyLacrosse" and c["EventId"] == "Hockey"
+    assert (c["ClockMode"], c["ClockMinutesTens"], c["ClockSecondOnes"]) == (":", "1", "0")
+    assert (c["HomeScoreTens"], c["HomeScoreOnes"], c["GuestScoreTens"], c["GuestScoreOnes"], c["Period"]) == ("0", "3", "1", "2", "2")
+    assert "HomePenaltyPlayer1Tens" not in c
+
+
+def test_msx_hockey_penalties_possession_and_subminute():
+    pen = {**put("12", 20), 22: "2", **put("30", 24), **put("34", 26), 28: "1", **put("45", 29),
+           **put("07", 31), 33: "1", **put("15", 34), **put("99", 36), 38: "2", **put("00", 39)}
+    # byte 12 = 65 ("A") is guest possession; 65 - 7 = 58 has bit 3 set so the clock is mm:ss
+    _, c = run("SpectrumMSX_Hockey", v2e(44, {**HOCKEY, **pen, 12: 65}))
+    assert (c["GuestPossession"], c["HomePossession"], c["ClockMode"]) == (">", " ", ":")
+    assert (c["HomePenaltyPlayer1Tens"], c["HomePenaltyPlayer1Ones"], c["HomePenaltyPlayer1ClockMinutesTens"],
+            c["HomePenaltyPlayer1ClockMinutesOnes"]) == ("1", "2", " ", "2")
+    assert (c["HomePenaltyPlayer1ClockSecondTens"], c["HomePenaltyPlayer1ClockSecondOnes"]) == ("3", "0")
+    assert (c["GuestPenaltyPlayer1Tens"], c["GuestPenaltyPlayer1Ones"], c["GuestPenaltyPlayer1ClockMinutesOnes"]) == ("3", "4", "1")
+    assert (c["GuestPenaltyPlayer1ClockSecondTens"], c["GuestPenaltyPlayer1ClockSecondOnes"]) == ("4", "5")
+    assert (c["HomePenaltyPlayer2Tens"], c["HomePenaltyPlayer2Ones"], c["HomePenaltyPlayer2ClockMinutesOnes"]) == ("0", "7", "1")
+    assert (c["HomePenaltyPlayer2ClockSecondTens"], c["HomePenaltyPlayer2ClockSecondOnes"]) == ("1", "5")
+    assert (c["GuestPenaltyPlayer2Tens"], c["GuestPenaltyPlayer2ClockSecondOnes"]) == ("9", "0")
+    # byte 12 = "5" is home possession; 53 has bit 3 clear -> seconds/tenths clock
+    _, c = run("SpectrumMSX_Hockey", v2e(36, {**HOCKEY, 12: 53}))
+    assert (c["HomePossession"], c["GuestPossession"]) == ("<", " ")
+    assert (c["ClockMode"], c["ClockMinutesTens"], c["ClockSecondTens"], c["ClockSecondOnes"], c["ClockTenthsSecond"]) == (".", "0", "1", "5", "3")
+
+
+def test_msx_hockey_framing():
+    pr = sp.PROTOCOLS["SpectrumMSX_Hockey"]()
+    fr = v2e(44, HOCKEY)
+    pr.feed(fr[:30])
+    pr.feed(fr[30:])
+    assert pr.packets == 1
+    pr.feed(v2e(40, HOCKEY))
+    assert pr.bad == 1

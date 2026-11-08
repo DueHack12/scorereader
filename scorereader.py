@@ -32,6 +32,7 @@ import json
 import os
 import queue
 import random
+import signal
 import socket
 import sys
 import threading
@@ -1875,6 +1876,11 @@ def main():
     ap.add_argument("--sniff", type=float, nargs="?", const=20, metavar="SECONDS",
                     help="hex-dump raw bytes from the bot (default 20s) and exit")
     a = ap.parse_args()
+
+    if hasattr(signal, "SIGTERM"):  # systemd / launchd stop = Ctrl+C: shut down cleanly
+        def _on_term(*_):
+            raise KeyboardInterrupt
+        signal.signal(signal.SIGTERM, _on_term)
 
     saved = load_config()                   # what's in scorereader_config.json
     cfg = json.loads(json.dumps(saved))     # running config = saved + command-line options (never written back)

@@ -514,6 +514,23 @@ class Volleyball(_TableDecoder):
     ]
 
 
+class VolleyballPro(_TableDecoder):
+    """Volleyball with per-set scores; its packets use kind byte ``v`` (0x76)."""
+
+    contract = "Volleyball"
+    event = "Volleyball"
+    kind = 118
+    steps = [
+        *Volleyball.steps[:-2],
+        # GamesWon sits on byte 18/19 here (byte 18 is also the guest serve flag), as in ScoreConnect
+        ("HomeGamesWon", 18), ("GuestGamesWon", 19),
+        *[(f"{side}ScoreSet{n}", (a, a + 1))
+          for n in range(1, 6)
+          for side, base in (("Home", 20), ("Guest", 30))
+          for a in (base + 2 * (n - 1),)],
+    ]
+
+
 class Wrestling(_TableDecoder):
     contract = "Wrestling"
     event = "Wrestling"
@@ -624,5 +641,6 @@ PROTOCOLS = {
     "OES_ShortHockeyStandard": _p(ShortHockeyStandard),
     "OES_SoccerPro": _p(SoccerPro),
     "OES_Volleyball": _p(Volleyball),
+    "OES_Volleyball_Pro": _p(VolleyballPro),
     "OES_Wrestling": _p(Wrestling),
 }

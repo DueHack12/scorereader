@@ -1,0 +1,7 @@
+# Sportzcast ScoreBot / ScoreLinkII (Microchip MCP2221, USB 04d8:00dd)
+# - lets ScoreReader open the GPIO (HID) interface and the serial port without root
+# - stops ModemManager from probing the serial port with AT commands
+# - adds a stable name: /dev/scorebot
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="04d8", ATTRS{idProduct}=="00dd", MODE="0660", GROUP="plugdev", TAG+="uaccess"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="04d8", ATTRS{idProduct}=="00dd", MODE="0660", GROUP="dialout", SYMLINK+="scorebot", ENV{ID_MM_DEVICE_IGNORE}="1"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="04d8", ATTRS{idProduct}=="00dd", ENV{ID_MM_DEVICE_IGNORE}="1"

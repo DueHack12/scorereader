@@ -20,6 +20,7 @@ VENDOR_MODULES = [
     "nisasport", "funtronix", "bodet", "anatec", "fujitsu", "bluevane", "skorled", "quince", "compulink",
     "viewall", "favero", "uno", "baybor", "ultrascore", "mondo", "lgr", "esk", "colosseo", "bertelle",
     "elakemk", "scoretec", "trackman", "majordisplay", "hamiltondigital", "macfinish", "farmtek", "prospecta",
+    "bicen", "grunewald",
 ]
 
 _lock = threading.Lock()

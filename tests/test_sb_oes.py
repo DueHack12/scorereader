@@ -4,7 +4,7 @@ import pytest
 from scoreboards import create, oes
 from scoreboards.oes import AUTODETECT, make_packet, oes_checksum
 
-TXT = {"t": 116, "s": 115}
+TXT = {"t": 116, "s": 115, "v": 118}
 
 
 def pkt(length, kind="t", fields=None):
@@ -246,6 +246,19 @@ def test_volleyball():
     check(c, IsSet3="0", InternalClockStatus="S")
 
 
+def test_volleyball_pro():
+    f = {2: "0000", 6: "3", 7: "24", 9: "22", 11: "1", 12: "2", 17: "1", 18: "2", 19: "1",
+         20: "25", 22: "21", 24: "15", 26: "00", 28: "00", 30: "20", 32: "25", 34: "13", 36: "  ", 38: "  "}
+    c = run("OES_Volleyball_Pro", pkt(42, "v", f)).snapshot()
+    check(c, Set="3", IsSet3="1", HomeScoreTens="2", HomeScoreOnes="4", GuestScoreOnes="2", HomeTimeout="1",
+          GuestTimeout="2", HomeServe="*", GuestServe=" ", HomeGamesWon="2", GuestGamesWon="1",
+          InternalClockStatus="R", HomeScoreSet1="25", GuestScoreSet1="20", HomeScoreSet2="21",
+          GuestScoreSet2="25", HomeScoreSet3="15", GuestScoreSet3="13", HomeScoreSet4="00",
+          GuestScoreSet4="  ", HomeScoreSet5="00", GuestScoreSet5="  ")
+    # plain 't' packets are ignored
+    assert "Set" not in run("OES_Volleyball_Pro", pkt(42, "t", f)).snapshot()
+
+
 def test_wrestling():
     f = {2: "0130", 6: "2", 7: "05", 9: "03", 19: "12", 21: "09", 25: "07"}
     c = run("OES_Wrestling", pkt(29, "t", f)).snapshot()
@@ -394,7 +407,7 @@ def test_registry_has_all_ids():
                 "OES_Baseball_Code50", "OES_Baseball_Code53", "OES_Baseball_Code85", "OES_Basketball",
                 "OES_Basketball_Tissot_Adapter", "OES_Football", "OES_FootballWireless", "OES_HockeyPro",
                 "OES_HockeyStandard", "OES_Hockey_ISC85X", "OES_Lacrosse", "OES_ShortHockeyStandard",
-                "OES_SoccerPro", "OES_Volleyball", "OES_Wrestling"}
+                "OES_SoccerPro", "OES_Volleyball", "OES_Volleyball_Pro", "OES_Wrestling"}
     assert set(oes.PROTOCOLS) == expected
 
 

@@ -1,6 +1,17 @@
 {
- "source": "ScoreConnect III 1.3.0.21 configuration database (facts only: names, codes, wiring)",
+ "source": "ScoreConnect III (Windows build) configuration database (facts only: names, codes, wiring)",
  "vendors": [
+  {
+   "id": -1,
+   "name": "No vendor",
+   "configs": [
+    {
+     "connection": "Wired",
+     "hardware": "CUTOM_DYNAMYC_BUILD",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
   {
    "id": 0,
    "name": "SportzCastSbData",
@@ -219,6 +230,11 @@
      "connection": "UDP (User Datagram Protocol)",
      "hardware": "UDP",
      "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    },
+    {
+     "connection": "TCP Server",
+     "hardware": "TCP_SERVER",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
     }
    ]
   },
@@ -308,14 +324,22 @@
    "name": "Tissot",
    "configs": [
     {
-     "connection": "Wired",
+     "connection": "Wired Rs422/Rs485",
      "hardware": "PIC_RS485/22_NODECODE_115200_NORMAL",
+     "read_timeout": "10",
      "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
     },
     {
      "connection": "Inverted",
      "hardware": "PIC_RS485/22_NODECODE_115200_INVERTED",
+     "read_timeout": "10",
      "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    },
+    {
+     "connection": "Wired Rs232",
+     "hardware": "PIC_RS232_NODECODE_115200_NORMAL",
+     "read_timeout": "10",
+     "eth_serial": "MODEDELAY_DELAY8_STRTCHR02_STPCHR04_INT4D"
     }
    ]
   },
@@ -941,6 +965,11 @@
      "connection": "Wired Rs232",
      "hardware": "PIC_RS232_NODECODE_19200_NORMAL",
      "eth_serial": "MODEDELAY_DELAY2_STRTCHR02_STPCHR03_INT4C"
+    },
+    {
+     "connection": "Wired Rs232 19200",
+     "hardware": "PIC_RS232_NODECODE_19200_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
     }
    ]
   },
@@ -952,6 +981,28 @@
      "connection": "Wired Rs232",
      "hardware": "PIC_RS232_NODECODE_57600_NORMAL",
      "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 72,
+   "name": "Bicen",
+   "configs": [
+    {
+     "connection": "Wired Rs422/Rs485",
+     "hardware": "PIC_RS232_NODECODE_57600_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY3_STRTCHR02_STPCHR04_INT4C"
+    }
+   ]
+  },
+  {
+   "id": 73,
+   "name": "Grunewald",
+   "configs": [
+    {
+     "connection": "Wired Rs232",
+     "hardware": "PIC_RS232_NODECODE_19200_NORMAL",
+     "eth_serial": "MODEDELAY_DELAY2_STRTCHR02_STPCHR03_INT4C"
     }
    ]
   },
@@ -1916,6 +1967,13 @@
    "vendor_sport_code": null
   },
   {
+   "enum": "DaktronicsAllSportsCG_Wrestling",
+   "vendor": "Daktronics AllSport CG",
+   "description": "Daktronics AllSport CG Wrestling",
+   "event_type": "Wrestling",
+   "vendor_sport_code": null
+  },
+  {
    "enum": "DaktronicsAllSportsCG_BasketballUNCG",
    "vendor": "Daktronics AllSport CG",
    "description": "Daktronics AllSport CG (UNCG) Basketball",
@@ -2105,6 +2163,13 @@
    "vendor_sport_code": null
   },
   {
+   "enum": "OES_Volleyball_Pro",
+   "vendor": "OES",
+   "description": "OES Pro Volleyball",
+   "event_type": "Volleyball",
+   "vendor_sport_code": null
+  },
+  {
    "enum": "Bertelle_Basketball",
    "vendor": "Bertelle",
    "description": "Bertelle Basketball",
@@ -2242,6 +2307,13 @@
    "vendor": "Spectrum V2E",
    "description": "Spectrum V2E Basketball",
    "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "SpectrumMSX_Hockey",
+   "vendor": "Spectrum V2E",
+   "description": "Spectrum MSX Hockey",
+   "event_type": "Hockey",
    "vendor_sport_code": null
   },
   {
@@ -3046,6 +3118,20 @@
    "enum": "Fujitsu_Basketball",
    "vendor": "Fujitsu",
    "description": "Fujitsu Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Bicen_Basketball",
+   "vendor": "Bicen",
+   "description": "Bicen Basketball",
+   "event_type": "Basketball",
+   "vendor_sport_code": null
+  },
+  {
+   "enum": "Grunewald_basketball",
+   "vendor": "Grunewald",
+   "description": "Grunewald Basketball",
    "event_type": "Basketball",
    "vendor_sport_code": null
   },

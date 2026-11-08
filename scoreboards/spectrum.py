@@ -247,6 +247,36 @@ class V2EBasketball(_Spectrum32):
         _basketball(self.c, p, _sa2, s(p[12]), s(p[12]), s(p[14]), s(p[11]))
 
 
+class V2EHockeyMSX(_Spectrum32):
+    contract = "HockeyLacrosse"
+    event = "Hockey"
+
+    # (contract prefix, player tens byte, minutes-ones byte, seconds-tens byte); player ones follows the tens
+    # byte and seconds ones follows the seconds tens byte. Only sent in 44-byte frames.
+    _PENALTIES = (("HomePenaltyPlayer1", 20, 22, 24), ("HomePenaltyPlayer2", 31, 33, 34),
+                  ("GuestPenaltyPlayer1", 26, 28, 29), ("GuestPenaltyPlayer2", 36, 38, 39))
+
+    def body(self, p):
+        c = self.c
+        status = p[12] - 7 if p[12] >= 64 else p[12]
+        if status & 8:
+            _clock4(c, p, _sa2)
+        else:
+            c["ClockMode"] = "."
+            c["ClockMinutesTens"] = c["ClockMinutesOnes"] = "0"
+            c["ClockSecondTens"], c["ClockSecondOnes"], c["ClockTenthsSecond"] = _sa2(p[1]), _sa2(p[2]), _sa2(p[3])
+        c["HomePossession"] = "<" if p[12] == 53 else " "
+        c["GuestPossession"] = ">" if p[12] == 65 else " "
+        _put(c, p, ((5, "HomeScoreTens"), (6, "HomeScoreOnes"), (7, "GuestScoreTens"), (8, "GuestScoreOnes"),
+                    (23, "Period")), _sa2)
+        if len(p) >= 41:
+            for pre, pl, mins, sec in self._PENALTIES:
+                c[pre + "Tens"], c[pre + "Ones"] = _sa2(p[pl]), _sa2(p[pl + 1])
+                c[pre + "ClockMinutesTens"] = " "
+                c[pre + "ClockMinutesOnes"] = _sa2(p[mins])
+                c[pre + "ClockSecondTens"], c[pre + "ClockSecondOnes"] = _sa2(p[sec]), _sa2(p[sec + 1])
+
+
 # --------------------------------------------------------------------------- V2 text-line basketball
 class V2Basketball(Decoder):
     contract = "Basketball"
@@ -353,5 +383,6 @@ PROTOCOLS = {
     "SpectrumV2E_Soccer": lambda: SpectrumV2EProtocol(V2ESoccer()),
     "SpectrumV2E_Basketball": lambda: SpectrumV2EProtocol(V2EBasketball()),
     "SpectrumV2E_Baseball": lambda: SpectrumV2EProtocol(SpectrumBaseball()),
+    "SpectrumMSX_Hockey": lambda: SpectrumV2EProtocol(V2EHockeyMSX()),
     "SpectrumMS250_Baseball": lambda: SpectrumMS250Protocol(MS250Baseball()),
 }

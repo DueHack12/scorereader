@@ -3,7 +3,7 @@
 Ids: `OES_AutoDetect`, `OES_BaseballISC85X`, `OES_BaseballPro`, `OES_BaseballStandard`, `OES_Baseball_Code50`,
 `OES_Baseball_Code53`, `OES_Baseball_Code85`, `OES_Basketball`, `OES_Basketball_Tissot_Adapter`, `OES_Football`,
 `OES_FootballWireless`, `OES_HockeyPro`, `OES_HockeyStandard`, `OES_Hockey_ISC85X`, `OES_Lacrosse`,
-`OES_ShortHockeyStandard`, `OES_SoccerPro`, `OES_Volleyball`, `OES_Wrestling` (all 19 implemented).
+`OES_ShortHockeyStandard`, `OES_SoccerPro`, `OES_Volleyball`, `OES_Wrestling` `OES_Volleyball_Pro` (all 20 implemented; the Pro id comes from the newer Windows build).
 
 ## Wiring (catalog.json, vendor OES)
 | Connection | Hardware | Notes |
@@ -63,6 +63,8 @@ SoccerPro (`Soccer`/`Soccer`, requires `s`): clock; Period 6; Score 7-8/9-10; ho
 Corners 15-16, Penalties 17-18; guest Shots 19-20, Saves 21-22, Corners 23-24, Penalties 25-26.
 Volleyball (requires `t`): clock; InternalClockStatus as basketball; Set 6 (IsSet3); Score 7-8/9-10; Timeout 11/12;
 Serve `*` if byte 17 / 18 == '1'; GamesWon 20 / 22.
+Volleyball_Pro (requires kind `v`, 0x76; not autodetected): as Volleyball but GamesWon Home 18 / Guest 19
+(byte 18 also drives GuestServe), plus set scores HomeScoreSet1-5 at 20-29 (two chars each) and GuestScoreSet1-5 at 30-39.
 Wrestling: clock; Period 6; Score 7-8/9-10; MatchScore 19-20 (home) 21-22 (guest); HomeMatch 25-26.
 
 Baseball (`BaseballSoftball`/`Baseball`, require `t` except ISC85X and Pro's length switch). Layouts (index):

@@ -27,6 +27,17 @@ def proline(*fields):
     return b"\x02" + body + b"\x03"
 
 
+def lay(kind, length, fills, sub=None):
+    """STX, type letter [, sub letter], ETX; `fills` maps byte offset -> bytes. Everything else is a blank."""
+    b = bytearray(b" " * length)
+    b[0], b[-1], b[1] = 2, 3, ord(kind)
+    if sub:
+        b[2] = ord(sub)
+    for off, data in fills.items():
+        b[off : off + len(data)] = data if isinstance(data, bytes) else data.encode()
+    return bytes(b)
+
+
 def pad(s, n):
     return s.ljust(n)[:n]
 
@@ -185,7 +196,7 @@ def clk(mm, ss, tenth=" ", sport=""):
 
 def test_proline_football():
     pr = P["FairplayProline_Football"]()
-    teams = proline("F", pad("EAGLES", 8), "21", "3", pad("HAWKS", 8), "07", "2", "3", "10", "35", "H")
+    teams = lay("F", 35, {2: "EAGLES", 12: "213", 15: "HAWKS", 25: "072", 28: "3", 29: "10", 31: "35", 33: "H"})
     assert pr.feed(teams) == 1
     pr.feed(proline("C", "1234", " ", "2", "15"))
     c = snap(pr)
@@ -211,43 +222,37 @@ def test_proline_clock_tenths_mode():
 
 def test_proline_soccer():
     pr = P["FairplayProline_Soccer"]()
-    pkt = proline("R", pad("RED", 8), "02", "08", "10", "4", pad("", 1), "5", pad("BLUE", 8), "10", "11", "03", "05",
-                  "x", "2")
-    # index check: home block 12..19 (score, shots, saves, ?, corner at 19), guest 30..37
-    body = bytearray(b"\x02R" + pad("RED", 8).encode() + b"0208" + b"1" + b"4" + b"0" + b"5" + b"7"
-                     + pad("BLUE", 8).encode() + b" 1" + b"11" + b"03" + b"05" + b" " + b"2" + b"\x03")
-    # layout: 12,13 score  14,15 shots  16,17 saves  18 spare  19 corners
-    assert body[12:14] == b"02"
-    pr.feed(bytes(body))
+    pkt = lay("R", 39, {2: "RED", 12: "02", 14: "08", 16: "10", 19: "4", 20: "BLUE", 30: "11", 32: "03",
+                        34: "05", 37: "2"})
+    pr.feed(pkt)
     c = snap(pr)
     assert c["EventId"] == "Soccer"
-    assert c["HomeTeamName"] == "RED     "
+    assert c["HomeTeamName"] == "RED     " and c["GuestTeamName"] == "BLUE    "
     assert (c["HomeScoreTens"], c["HomeScoreOnes"]) == (" ", "2")  # leading zero blanked
     assert (c["HomeShotTens"], c["HomeShotOnes"]) == (" ", "8")
-    assert c["HomeSaves"] == "10" or c["HomeSaves"] == " 1"
-    assert c["GuestTeamName"] == "BLUE    "
-    assert c["GuestCornerKicks"] == " 2"
-    assert pkt  # builder above kept only to document the layout
+    assert c["HomeSaves"] == "10" and c["HomeCornerKicks"] == " 4"
+    assert (c["GuestScoreTens"], c["GuestScoreOnes"], c["GuestShotTens"], c["GuestShotOnes"]) == ("1", "1", " ", "3")
+    assert c["GuestSaves"] == " 5" and c["GuestCornerKicks"] == " 2"
 
 
 def test_proline_basketball():
     pr = P["FairplayProline_Basketball"]()
-    home = proline("B", "H", pad("HOME", 8), " ", "7", "5", "1", "2", "3", "1", "0", "1")
-    # name at 3..10, then 11,12 spare, score hundreds at 13
-    home = b"\x02BH" + pad("HOME", 8).encode() + b"  " + b"0" + b"7" + b"5" + b" " + b"4" + b"2" + b"1" + b"1" + b"0" + b"\x03"
-    pr.feed(home)
-    guest = b"\x02BV" + pad("AWAY", 8).encode() + b"  " + b"1" + b"0" + b"9" + b"0" + b"3" + b"1" + b"0" + b"0" + b"1" + b"\x03"
-    pr.feed(guest)
-    pr.feed(proline("C", "0742", " ", "3", "2", "4"))
+    pr.feed(lay("B", 23, {3: "HOME", 13: "075", 16: "04", 18: "2", 19: "1", 20: "0", 21: "0"}, sub="H"))
+    pr.feed(lay("B", 23, {3: "AWAY", 13: "109", 16: "03", 18: "1", 19: "0", 20: "0", 21: "1"}, sub="V"))
+    pr.feed(proline("C", "0742", " ", "4", "32"))
     c = snap(pr)
     assert c["HomeTeamName"] == "HOME    "
     assert (c["HomeScoreHundreds"], c["HomeScoreTens"], c["HomeScoreOnes"]) == (" ", "7", "5")
     assert (c["HomeFoulTens"], c["HomeFoulOnes"], c["HomeTimeouts"]) == (" ", "4", "2")
     assert (c["HomePossession"], c["HomeBonus"], c["HomeDoubleBonus"]) == ("<", " ", " ")
-    assert (c["GuestScoreHundreds"], c["GuestScoreOnes"]) == ("1", "9")
+    # three-digit score: hundreds shown, tens not refreshed (ScoreConnect quirk), ones from byte 15
+    assert (c["GuestScoreHundreds"], c["GuestScoreOnes"]) == ("1", "9") and "GuestScoreTens" not in c
     assert (c["GuestFoulTens"], c["GuestFoulOnes"], c["GuestTimeouts"]) == (" ", "3", "1")
     assert (c["GuestPossession"], c["GuestBonus"], c["GuestDoubleBonus"]) == (" ", " ", "B")
-    assert (c["Period"], c["ShotClockSecondTens"], c["ShotClockSecondOnes"]) == ("4", "3", "2") or c["Period"] == "2"
+    assert (c["Period"], c["ShotClockSecondTens"], c["ShotClockSecondOnes"]) == ("4", "3", "2")
+    # short packets: only the team name is taken
+    pr.feed(lay("B", 15, {3: "SHORT"}, sub="H"))
+    assert snap(pr)["HomeTeamName"] == "SHORT   "
 
 
 def test_proline_baseball():
@@ -386,7 +391,7 @@ def test_mp69_football():
 @pytest.mark.parametrize("pid", ["PIC55AA_FairplayMP69_Basketball_Code0", "PIC55AA_FairplayMP69_Basketball_Code42"])
 def test_mp69_basketball(pid):
     pr = P[pid]()
-    pr.feed(mp69([0x60, 0xF0 & 0xF0 | 0x08 | 0x80 | 0x20, 0x02, 0x45, 0x07, 0x30, 0x08]))
+    pr.feed(mp69([0x60, 0xA8, 0x02, 0x45, 0x07, 0x30, 0x08]))
     c = snap(pr)
     assert c["EventId"] == "Basketball" and c["Period"] == "2"
     assert (c["HomeScoreHundreds"], c["HomeScoreTens"], c["HomeScoreOnes"]) == ("1", "0", "7")
