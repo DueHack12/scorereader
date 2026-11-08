@@ -99,11 +99,6 @@ class _StramatelDecoder(Decoder):
     def _horn(self, p: bytes) -> None:
         self.c["Horn"] = "H" if p[19] == 0x31 else " "
 
-    def _set(self, p: bytes, idx: dict) -> None:
-        """idx: contract key -> (byte index, zero-suppress)."""
-        for key, (i, slz) in idx.items():
-            self.c[key] = _a(p, i, slz)
-
     def _name(self, key: str, p: bytes, off: int) -> None:
         """Team names are 4 UTF-16LE characters; ScoreConnect keeps the first non-blank name it sees."""
         if not str(self.c.get(key, "")).strip():

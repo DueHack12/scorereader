@@ -58,6 +58,10 @@ DEFAULT_CONFIG = {
     "port": "auto",                 # auto | COM5 | /dev/cu.usbmodem1101 ...
     "baud": 19200,                  # scoreboard data baud (Daktronics All Sport 5000 = 19200)
     "sport": "football",
+    # Scoreboard brand + sport, as a ScoreConnect vendor-sport id (see scoreboards/catalog.json), e.g.
+    # "PIC55AA_Nevco_Basketball". Blank = the built-in Daktronics All Sport 5000 decoders (current loop + RTD),
+    # which pick football/soccer from the console automatically. "connection" picks the wiring option.
+    "scoreboard": {"protocol": "", "connection": 0},
     "scorelink": {
         "use_gpio_mode_switch": True,   # drive MCP2221 GP2 (needs `hidapi`)
         "probe_on_start": True,         # ask the PIC its version/config at startup (log only)
@@ -65,6 +69,7 @@ DEFAULT_CONFIG = {
         "command_baud": 57600,
         # exactly what ScoreConnect III sent for Daktronics football (current loop, inverted):
         "config_commands": [">M0X0X", ">T0", ">D0", ">M8I1N"],
+        "configured_for": "",           # brand/wiring the bot was last configured for (set automatically)
     },
     "tcp": {"host": "", "port": 0},     # for serial-to-ethernet converters
     "http_port": 8765,
@@ -184,6 +189,8 @@ SETTINGS = {
     "replay_file": ("Data source", "Capture to replay", "choice", "reader"),
     "scorelink.probe_on_start": ("Data source", "Ask the bot for its settings at start", "bool", "reader"),
     "scorelink.send_config_on_start": ("Data source", "Re-send the bot configuration at start", "bool", "reader"),
+    "scoreboard.protocol": ("Scoreboard", "Scoreboard brand and sport", "choice", "reader"),
+    "scoreboard.connection": ("Scoreboard", "Wiring", "int", "reader"),
     "sport": ("Scoreboard", "Sport (used when the console doesn't identify itself)", "choice", "live"),
     "teams.home_name": ("Teams", "Home name", "str", "live"),
     "teams.home_abbr": ("Teams", "Home abbreviation", "str", "live"),
@@ -726,6 +733,34 @@ class SportMap:
         return s
 
 
+# --------------------------------------------------------------------------- multi-vendor contracts -> output fields
+def _snake(name: str) -> str:
+    out = []
+    for i, ch in enumerate(name):
+        if ch.isupper() and i and (not name[i - 1].isupper() or (i + 1 < len(name) and name[i + 1].islower())):
+            out.append("_")
+        out.append(ch.lower())
+    return "".join(out)
+
+
+def contract_to_data(contract: str, c: dict) -> dict:
+    """ScoreReader output fields for a brand decoder's contract (scoreboards.contracts.flat), with a plain
+    snake_case fallback so data still flows if the contracts module can't handle this contract."""
+    try:
+        from scoreboards import contracts
+
+        d = contracts.flat(contract, c)
+        if isinstance(d, dict):
+            return d
+    except Exception as e:
+        if not getattr(contract_to_data, "_warned", False):
+            contract_to_data._warned = True
+            log(f"Output mapping for {contract} unavailable ({e}); showing raw contract fields")
+    d = {_snake(k): (v if isinstance(v, (str, int, float, bool)) else str(v)) for k, v in c.items()}
+    d.setdefault("sport", str(c.get("EventId", "")).lower())
+    return d
+
+
 # --------------------------------------------------------------------------- Windows HID (no hidapi needed)
 class WinHID:
     """Talk to a HID device on Windows using only built-in DLLs (hid.dll / setupapi / kernel32)."""
@@ -959,9 +994,26 @@ def pic_command(ser, cmd: str, timeout=0.6) -> str:
     return text
 
 
-def scorelink_session(cfg, ser, mcp, send_config: bool, probe: bool) -> dict:
-    """Enter command mode, query/configure the PIC, return to data mode. Returns info dict."""
+def _readback(cmd: str) -> tuple:
+    """(query, verify) for a PIC write, the way ScoreConnect checks it (falls back to a simple check)."""
+    try:
+        from scoreboards import hardware
+
+        return hardware.readback_query(cmd), lambda reply: hardware.verify_reply(cmd, reply)
+    except Exception:
+        q = cmd[:3] + "?" if cmd.startswith(">M") else cmd[:2] + "?"
+        return q, lambda reply: bool(reply)
+
+
+def scorelink_session(cfg, ser, mcp, send_config: bool, probe: bool, commands=None, data_baud=None) -> dict:
+    """Enter command mode, query/configure the PIC, return to data mode. Returns info dict.
+
+    commands/data_baud: the brand's bot configuration (from scoreboards.hardware); default = the configured
+    scorelink.config_commands at cfg["baud"] (Daktronics current loop, 19200).
+    """
     sl = cfg["scorelink"]
+    commands = list(commands if commands is not None else sl["config_commands"])
+    data_baud = int(data_baud or cfg["baud"])
     info = {}
     if mcp is None:
         log("ScoreLink: no GPIO control available -> skipping PIC command mode")
@@ -978,16 +1030,23 @@ def scorelink_session(cfg, ser, mcp, send_config: bool, probe: bool) -> dict:
                 info[q] = r
                 log(f"PIC {q:4} -> {r or '(no reply)'}")
         if send_config:
-            for c in sl["config_commands"]:
-                pic_command(ser, c)
-                time.sleep(0.3)  # PIC writes EEPROM
-                chk = c[:3] + "?" if c.startswith(">M") else c[:2] + "?"
-                r = pic_command(ser, chk)
-                log(f"PIC set {c} -> readback {r or '(no reply)'}")
+            ok = True
+            for c in commands:
+                query, verify = _readback(c)
+                for attempt in range(10 if c.startswith(">M") else 4):  # ScoreConnect's retry counts
+                    pic_command(ser, c)
+                    time.sleep(0.3)  # PIC writes EEPROM
+                    r = pic_command(ser, query)
+                    if verify(r):
+                        break
+                else:
+                    ok = False
+                log(f"PIC set {c} -> readback {r or '(no reply)'}" + ("" if verify(r) else "  (NOT CONFIRMED)"))
+            info["configured"] = ok
     finally:
         mcp.set_gp2(True)  # data mode
         time.sleep(0.05)
-        ser.baudrate = cfg["baud"]
+        ser.baudrate = data_baud
         time.sleep(0.05)
         ser.reset_input_buffer()
     STATUS.pic_info = info
@@ -995,10 +1054,14 @@ def scorelink_session(cfg, ser, mcp, send_config: bool, probe: bool) -> dict:
 
 
 class Reader(threading.Thread):
-    def __init__(self, cfg, decoder: DaktronicsRTD, stop: threading.Event, cl=None):
+    def __init__(self, cfg, decoder: DaktronicsRTD, stop: threading.Event, cl=None, vendor=None, bot=None):
+        """vendor: a scoreboards Protocol for the chosen brand/sport (None = built-in Daktronics decoders).
+        bot: the ScoreBot set-up for that brand, see App.bot_plan()."""
         super().__init__(daemon=True)
         self.cfg, self.decoder, self.stop = cfg, decoder, stop
         self.cl = cl
+        self.vendor = vendor
+        self.bot = bot or {}
         self.raw_file = None
         self.reinit_request = threading.Event()
         self.raw_sink: queue.Queue | None = None  # for --sniff
@@ -1007,6 +1070,12 @@ class Reader(threading.Thread):
     def _feed(self, data: bytes):
         if self.raw_hook is not None:
             self.raw_hook(data)
+        if self.vendor is not None:
+            n = self.vendor.feed(data)
+            if n:
+                STATUS.packets += n
+                STATUS.last_packet_time = time.time()
+            return
         if self.cl is not None:
             self.cl.feed(data)
             if self.cl.packets > 20:
@@ -1073,20 +1142,34 @@ class Reader(threading.Thread):
                 log("hidapi not installed -> can't switch ScoreLinkII modes (Mac/Linux: pip install hidapi)")
             except Exception as e:
                 log(f"MCP2221 GPIO unavailable: {e}")
-        ser = serial.Serial(port, self.cfg["baud"], bytesize=8, parity="N", stopbits=1, timeout=0.2)
+        bot = self.bot
+        baud = int(bot.get("baud") or self.cfg["baud"]) if scorelink else int(self.cfg["baud"])
+        ser = serial.Serial(port, baud, bytesize=8, parity="N", stopbits=1, timeout=0.2)
+
+        def session(configure: bool):
+            info = scorelink_session(self.cfg, ser, mcp, configure, configure or sl.get("probe_on_start", True),
+                                     commands=bot.get("commands"), data_baud=baud)
+            if configure and info.get("configured") and bot.get("on_configured"):
+                bot["on_configured"]()
+            return info
+
         try:
             log(f"Opened {port}")
+            sl = self.cfg["scorelink"]
+            if scorelink and bot.get("note"):
+                log(bot["note"])
             if scorelink and mcp is not None:
-                sl = self.cfg["scorelink"]
-                scorelink_session(self.cfg, ser, mcp, sl.get("send_config_on_start", False),
-                                  sl.get("probe_on_start", True))
-                log(f"ScoreLinkII in DATA mode, reading at {self.cfg['baud']} baud")
-            STATUS.set_source("connected", f"{port} @ {self.cfg['baud']}")
+                configure = bool(sl.get("send_config_on_start", False) or bot.get("configure"))
+                if bot.get("configure"):
+                    log(f"Configuring the ScoreBot for {bot.get('label', 'this scoreboard')}")
+                session(configure)
+                log(f"ScoreLinkII in DATA mode, reading at {baud} baud")
+            STATUS.set_source("connected", f"{port} @ {baud}")
             while not self.stop.is_set():
                 if self.reinit_request.is_set():
                     self.reinit_request.clear()
                     if scorelink and mcp is not None:
-                        scorelink_session(self.cfg, ser, mcp, True, True)
+                        session(True)
                 data = ser.read(4096)
                 if data:
                     self._record(data)
@@ -1362,6 +1445,18 @@ let S=null;
 async function openSettings(){S=await (await fetch('/api/settings')).json();renderSettings();document.getElementById('settings').hidden=false;}
 function closeSettings(){document.getElementById('settings').hidden=true;}
 function sid(p){return 'set_'+p.replace(/\./g,'_');}
+function brandOf(pid){for(const b of S.scoreboards)if(b.sports.some(x=>x.id==pid))return b;return null;}
+function sbPicker(){const pid=S.values['scoreboard.protocol']||'',b=brandOf(pid);
+ let h=`<label class="set"><span>Scoreboard brand</span><select id="sb_brand" onchange="sbBrand()"><option value="">Daktronics All Sport 5000 (built-in, automatic)</option>`+
+  S.scoreboards.map(x=>`<option ${b&&b.name==x.name?'selected':''}>${esc(x.name)}</option>`).join('')+'</select></label>';
+ h+=`<label class="set" id="sb_sport_l"><span>Sport / console layout</span><select id="${sid('scoreboard.protocol')}" onchange="showFor()"></select></label>`;
+ h+=`<label class="set" id="sb_conn_l"><span>Wiring</span><select id="${sid('scoreboard.connection')}"></select></label>`;return h;}
+function sbBrand(keep){const bn=document.getElementById('sb_brand').value,b=S.scoreboards.find(x=>x.name==bn);
+ const sp=document.getElementById(sid('scoreboard.protocol')),cn=document.getElementById(sid('scoreboard.connection'));
+ sp.innerHTML=b?b.sports.map(x=>`<option value="${esc(x.id)}">${esc(x.description)}</option>`).join(''):'<option value=""></option>';
+ cn.innerHTML=b?b.connections.map((c,i)=>`<option value="${i}">${esc(c)}</option>`).join(''):'<option value="0"></option>';
+ if(keep){sp.value=S.values['scoreboard.protocol']||'';cn.value=String(S.values['scoreboard.connection']||0);}
+ document.getElementById('sb_sport_l').hidden=!b;document.getElementById('sb_conn_l').hidden=!b||b.connections.length<2;showFor();}
 function inputFor(sp){const v=S.values[sp.path],id=sid(sp.path);
  if(sp.type=='bool')return `<input type="checkbox" id="${id}" ${v?'checked':''}>`;
  if(sp.type=='choice'){const ch=S.choices[sp.path]||[];if(!ch.length)return '<span class="mut">none yet</span>';
@@ -1372,16 +1467,18 @@ const SHOW={port:['scorelink','serial'],baud:['scorelink','serial'],'scorelink.p
  'scorelink.send_config_on_start':['scorelink'],'tcp.host':['tcp'],'tcp.port':['tcp'],replay_file:['replay']};
 function renderSettings(){const groups={};S.spec.forEach(sp=>(groups[sp.group]=groups[sp.group]||[]).push(sp));let h='';
  for(const [g,list] of Object.entries(groups)){h+=`<fieldset><legend>${esc(g)}</legend>`;
-  list.forEach(sp=>{h+=`<label class="set" data-path="${sp.path}"><span>${esc(sp.label)}${sp.apply=='restart'?' <em class="mut">(after restart)</em>':''}</span>${inputFor(sp)}</label>`});
+  list.forEach(sp=>{if(sp.path=='scoreboard.protocol'){h+=sbPicker();return;}if(sp.path=='scoreboard.connection')return;
+   h+=`<label class="set" data-path="${sp.path}"><span>${esc(sp.label)}${sp.apply=='restart'?' <em class="mut">(after restart)</em>':''}</span>${inputFor(sp)}</label>`});
   if(g=='Files')h+=`<p class="mut" style="margin:4px 0">Text files go to ${esc(S.text_folder)}</p>`;h+='</fieldset>';}
  setform.innerHTML=h;cfgpath.textContent=S.config_path;setmsg.textContent='';setmsg.className='mut';
  portlist.innerHTML='<option value="auto">auto-detect</option>'+S.ports.map(p=>`<option value="${esc(p.device)}">${esc(p.description)}${p.scorelink?' (ScoreBot)':''}</option>`).join('');
- const src=document.getElementById(sid('source'));if(src){src.onchange=showFor;}showFor();}
-function showFor(){const src=(document.getElementById(sid('source'))||{}).value;
- document.querySelectorAll('label.set').forEach(l=>{const w=SHOW[l.dataset.path];l.hidden=!!w&&!w.includes(src);});}
+ const src=document.getElementById(sid('source'));if(src){src.onchange=showFor;}sbBrand(true);}
+function showFor(){const src=(document.getElementById(sid('source'))||{}).value,bp=document.getElementById('sb_brand');
+ document.querySelectorAll('label.set[data-path]').forEach(l=>{const w=SHOW[l.dataset.path];l.hidden=(!!w&&!w.includes(src))||(l.dataset.path=='sport'&&bp&&bp.value!='');});}
 async function saveSettings(){const ch={};
- S.spec.forEach(sp=>{const el=document.getElementById(sid(sp.path));if(!el)return;const lab=el.closest('label');if(lab&&lab.hidden&&sp.path!='source')return;
-  const v=sp.type=='bool'?el.checked:el.value;if(String(v)!==String(S.values[sp.path]??''))ch[sp.path]=v;});
+ S.spec.forEach(sp=>{const el=document.getElementById(sid(sp.path));if(!el)return;const lab=el.closest('label');if(lab&&lab.hidden&&sp.path!='source'&&sp.path!='scoreboard.protocol')return;
+  let v=sp.type=='bool'?el.checked:el.value;if(sp.path=='scoreboard.protocol'&&document.getElementById('sb_brand').value=='')v='';
+  if(String(v)!==String(S.values[sp.path]??''))ch[sp.path]=v;});
  if(!Object.keys(ch).length){setmsg.textContent='Nothing changed.';return;}
  const r=await postSettings(ch);
  if(!r.ok){setmsg.className='bad';setmsg.textContent=Object.values(r.errors).join(' · ');return;}
@@ -1392,11 +1489,11 @@ async function tick(){
   const r=await fetch('/api/state');const s=await r.json();
   const sel=document.getElementById('sport');
   if(!sel.options.length){s.sports.forEach(n=>{const o=new Option(n,n);sel.add(o)});}
-  sel.value=s.sport;
+  sel.value=s.sport;sel.parentElement.style.display=s.vendor_mode?'none':'';
   const src=document.getElementById('src');src.textContent=s.source_state+' — '+s.source_detail;
   src.className='pill '+(s.source_state=='connected'?'ok':(s.source_state=='error'?'bad':'warn'));
   const age=document.getElementById('age');
-  if(s.packet_age==null){age.textContent='no RTD packets yet';age.className='pill warn'}
+  if(s.packet_age==null){age.textContent='no packets yet';age.className='pill warn'}
   else{age.textContent='last packet '+s.packet_age.toFixed(1)+'s ago';age.className='pill '+(s.packet_age<5?'ok':'warn')}
   const vm=document.getElementById('vmix');vm.textContent='vMix: '+s.vmix_state;vm.className='pill '+(s.vmix_state.startsWith('connected')?'ok':(s.vmix_state=='disabled'?'':'bad'));
   const mq=document.getElementById('mqtt');mq.textContent='MQTT: '+s.mqtt_state;mq.className='pill '+(s.mqtt_state.startsWith('listening')||s.mqtt_state.startsWith('connected')?'ok':(s.mqtt_state=='disabled'?'':'bad'));
@@ -1425,7 +1522,9 @@ async function tick(){
    for(let i=r;i<Math.min(r+W,raw.length);i++){const a=ch[i];const cls=a<1?'hot':(a<10?'warm':'');
     const c=raw[i]==' '?'&nbsp;':raw[i].replace('&','&amp;').replace('<','&lt;');g+=`<span class="c ${cls}" title="pos ${i+1}">${c}</span>`;}
    g+='</div>';}
-  if(s.cl_table.length){grid.innerHTML='';document.getElementById('ptitle').textContent=s.protocol+' — addresses';
+  if(s.contract&&s.contract.length){grid.innerHTML='';document.getElementById('ptitle').textContent=s.protocol+' — decoded fields';
+   cltab.innerHTML='<table><tr><th>field</th><th>value</th></tr>'+s.contract.map(r=>`<tr><td>${esc(r.k)}</td><td class="v">${esc(r.v).replace(/ /g,'·')}</td></tr>`).join('')+'</table>';}
+  else if(s.cl_table.length){grid.innerHTML='';document.getElementById('ptitle').textContent=s.protocol+' — addresses';
    let t='<table><tr><th>addr</th><th>len</th><th>7-seg digits</th><th>age</th><th>hex (byte 0, 1, 2 …)</th></tr>';
    s.cl_table.filter(r=>r.addr<0xE0).forEach(r=>{t+=`<tr><td>${r.addr}</td><td>${r.len}</td><td class="v">${r.digits.replace(/ /g,'·')}</td><td class="mut">${r.age}s</td><td class="mut v" style="font-size:11px">${r.hex}</td></tr>`});
    cltab.innerHTML=t+'</table><br>';}
@@ -1471,10 +1570,74 @@ class App:
         cl = DaktronicsCurrentLoop()
         cl.sport_fallback = lambda: self.cfg["sport"]
         cl.custom_fields = lambda: self.cfg.get("custom_fields", {})
+        self.vendor = None
+        pid = self.protocol_id()
+        if pid:
+            try:
+                import scoreboards
+
+                self.vendor = scoreboards.create(pid)
+                log(f"Scoreboard: {self.protocol_label()}")
+            except Exception as e:
+                log(f"Scoreboard '{pid}' is not available ({e}); using the built-in Daktronics decoders")
         return dec, cl
 
+    def protocol_id(self) -> str:
+        return str(get_path(self.cfg, "scoreboard.protocol", "") or "")
+
+    def protocol_label(self) -> str:
+        pid = self.protocol_id()
+        if not pid:
+            return "Daktronics All Sport 5000 (built-in)"
+        try:
+            import scoreboards
+
+            vs = scoreboards.vendor_sport(pid) or {}
+            return vs.get("description") or pid
+        except Exception:
+            return pid
+
+    def bot_plan(self) -> dict:
+        """How to set up the ScoreBot for the chosen brand and wiring (built-in Daktronics: the config file's
+        scorelink.config_commands at cfg["baud"], sent only when asked, exactly as before)."""
+        pid = self.protocol_id()
+        if not pid or self.vendor is None:
+            return {}
+        try:
+            import scoreboards
+            from scoreboards import hardware
+
+            vs = scoreboards.vendor_sport(pid) or {}
+            configs = hardware.configs_for_vendor(vs.get("vendor", ""))
+        except Exception as e:
+            return {"note": f"No bot set-up known for {pid} ({e}); reading at {self.cfg['baud']} baud"}
+        if not configs:
+            return {"note": f"No wiring known for {pid}; reading at {self.cfg['baud']} baud"}
+        idx = int(get_path(self.cfg, "scoreboard.connection", 0) or 0)
+        vc = configs[idx] if 0 <= idx < len(configs) else configs[0]
+        label = f"{self.protocol_label()} - {vc.get('connection', 'wired')}"
+        try:
+            plan = hardware.plan(vc)
+        except Exception as e:
+            return {"label": label, "note": f"Can't set up the bot for {label} automatically ({e})"}
+        if plan.get("device") != "pic" or plan.get("dynamic"):
+            return {"label": label, "baud": plan.get("data_baud") or None,
+                    "note": f"{label}: this wiring ({plan.get('hardware')}) is configured outside the ScoreLinkII; "
+                            "ScoreReader only reads the data"}
+        key = f"{pid}#{vc.get('hardware')}"
+
+        def remember():
+            set_path(self.saved, "scorelink.configured_for", key)
+            set_path(self.cfg, "scorelink.configured_for", key)
+            try:
+                save_config(self.saved)
+            except OSError:
+                pass
+        return {"label": label, "commands": plan["pic_commands"], "baud": plan["data_baud"],
+                "configure": get_path(self.cfg, "scorelink.configured_for", "") != key, "on_configured": remember}
+
     def _new_reader(self):
-        r = Reader(self.cfg, self.decoder, threading.Event(), self.cl)
+        r = Reader(self.cfg, self.decoder, threading.Event(), self.cl, vendor=self.vendor, bot=self.bot_plan())
         if self.mqtt:
             r.raw_hook = self.mqtt.raw
         return r
@@ -1516,8 +1679,34 @@ class App:
         return "scorelink" if s in RUNTIME_ONLY_SOURCES else s
 
     def setting_choices(self) -> dict:
+        try:
+            import scoreboards
+
+            protocols = sorted(scoreboards.protocols())
+        except Exception:
+            protocols = []
         return {"source": ["scorelink", "serial", "tcp", "demo", "replay"], "sport": self.sports.names(),
-                "mqtt.mode": ["broker", "client"], "replay_file": list_captures()}
+                "mqtt.mode": ["broker", "client"], "replay_file": list_captures(),
+                "scoreboard.protocol": [""] + protocols}
+
+    def scoreboards_json(self) -> list:
+        """Brands with their implemented sports and wiring options, for the Settings pickers."""
+        try:
+            import scoreboards
+
+            impl = scoreboards.protocols()
+            cat = scoreboards.catalog()
+        except Exception:
+            return []
+        out = []
+        for v in cat.get("vendors", []):
+            sports = [{"id": r["enum"], "description": r.get("description") or r["enum"], "event": r.get("event_type")}
+                      for r in cat.get("vendor_sports", []) if r.get("vendor") == v["name"] and r.get("enum") in impl]
+            if sports:
+                out.append({"name": v["name"], "sports": sorted(sports, key=lambda x: x["description"]),
+                            "connections": [c.get("connection", "") + (" - " + c["hardware"] if c.get("hardware") else "")
+                                            for c in v.get("configs", [])]})
+        return sorted(out, key=lambda v: v["name"].lower())
 
     def settings_json(self) -> dict:
         try:
@@ -1531,6 +1720,7 @@ class App:
             "choices": self.setting_choices(),
             "ports": ports,
             "runtime_only_sources": list(RUNTIME_ONLY_SOURCES),
+            "scoreboards": self.scoreboards_json(),
             "live_source": self.live_source(),
             "config_path": CONFIG_PATH,
             "text_folder": os.path.join(APP_DIR, get_path(self.cfg, "text_files.folder", "text_out")),
@@ -1591,9 +1781,20 @@ class App:
                                  or str(d.get(f"{side}_abbr") or "").strip())
             d[f"{side}_color"] = str(t.get(f"{side}_color") or "").strip()
 
+    def vendor_contract(self):
+        """(contract name, contract dict) of the brand decoder, or None on the built-in Daktronics path."""
+        v = self.vendor
+        if v is None:
+            return None
+        return v.contract_name, (v.full_contract() if hasattr(v, "full_contract") else v.snapshot())
+
     def build_data(self) -> dict:
         with self.swap_lock:
-            if self.cl.packets:
+            vc = self.vendor_contract()
+            if vc is not None:
+                d = contract_to_data(*vc)
+                d["protocol"] = self.protocol_id()
+            elif self.cl.packets:
                 d = self.cl.data()
             else:
                 d = self.sports.extract(self.cfg["sport"], self.decoder.snapshot())
@@ -1608,7 +1809,7 @@ class App:
         text_cache: dict = {}
         last_save = 0.0
         while not self.stop.is_set():
-            v = (self.gen, self.decoder.version, self.cl.version)
+            v = (self.gen, self.decoder.version, self.cl.version, self.vendor.version if self.vendor else 0)
             if v != seen:
                 seen = v
                 d = self.build_data()
@@ -1618,7 +1819,7 @@ class App:
                 if vm:
                     vm.submit(d)
                 if self.mqtt:
-                    self.mqtt.update(d)
+                    self.mqtt.update(d, contract=self.vendor_contract())
                 tf = self.cfg.get("text_files", {})
                 if tf.get("enabled"):
                     try:
@@ -1661,6 +1862,7 @@ class App:
             "mqtt_state": self.mqtt.status if self.mqtt else "disabled",
             "pic_info": STATUS.pic_info,
             "sport": cl.sport if cl.packets else self.cfg["sport"],
+            "vendor_mode": self.vendor is not None,
             "sports": self.sports.names(),
             "fields": [{"name": f["name"], "pos": f["pos"], "len": f["len"]} for f in self.sports.fields(self.cfg["sport"])],
             "data": self.current(),
@@ -1668,11 +1870,22 @@ class App:
             "changed_ago": ch,
             "logs": STATUS.logs[-80:],
             "recent_hex": STATUS.recent_hex,
-            "protocol": "Daktronics current loop (code " + (cl.console_code or "?") + ")" if cl.packets
-                        else "Daktronics RTD",
+            "protocol": (self.protocol_label() if self.vendor is not None else
+                         "Daktronics current loop (code " + (cl.console_code or "?") + ")" if cl.packets
+                         else "Daktronics RTD"),
+            "scoreboard": self.protocol_label(),
+            "contract": self._contract_rows(),
             "cl_table": cl.address_table(),
             "cl_bad": cl.bad,
         }
+
+    def _contract_rows(self) -> list:
+        vc = self.vendor_contract()
+        if vc is None:
+            return []
+        v = self.vendor
+        rows = [{"k": k, "v": str(val)} for k, val in sorted(vc[1].items()) if not isinstance(val, (dict, list))]
+        return [{"k": "(contract)", "v": vc[0]}, {"k": "(packets / bad)", "v": f"{v.packets} / {v.bad}"}] + rows
 
     def make_handler(app):
         class H(BaseHTTPRequestHandler):
@@ -1803,6 +2016,19 @@ def cmd_list_ports():
         print(f"\nScoreLinkII USB control interface: {e}")
 
 
+def cmd_list_scoreboards():
+    import scoreboards
+
+    impl = scoreboards.protocols()
+    rows = [r for r in scoreboards.catalog().get("vendor_sports", []) if r.get("enum") in impl]
+    print("(blank)".ljust(44), "Daktronics All Sport 5000, built-in current loop + RTD (default)")
+    for r in sorted(rows, key=lambda r: (r["vendor"].lower(), r["description"])):
+        print(r["enum"].ljust(44), f'{r["vendor"]}: {r["description"]}')
+    print(f"\n{len(rows)} scoreboard layouts. Use: scorereader.py --scoreboard ID   (or pick one in Settings)")
+    for mod, err in scoreboards.load_errors().items():
+        print(f"warning: scoreboards/{mod}.py failed to load: {err}")
+
+
 def cmd_probe(cfg, configure: bool):
     import serial
 
@@ -1867,6 +2093,9 @@ def main():
     ap.add_argument("--http-port", type=int)
     ap.add_argument("--mqtt-bot", type=int, metavar="N", help="bot number for MQTT topics bot/N/... (default 0)")
     ap.add_argument("--no-mqtt", action="store_true", help="disable the Sportzcast-compatible MQTT output")
+    ap.add_argument("--scoreboard", metavar="ID",
+                    help="scoreboard brand+sport id (see --list-scoreboards); this session only")
+    ap.add_argument("--list-scoreboards", action="store_true", help="list supported scoreboard brands/sports and exit")
     ap.add_argument("--replay", metavar="FILE", help="replay a raw capture from logs/raw_*.bin")
     ap.add_argument("--fresh", action="store_true", help="ignore the saved last-known scoreboard state")
     ap.add_argument("--list-ports", action="store_true", help="list serial ports and exit")
@@ -1907,8 +2136,12 @@ def main():
     if a.http_port:
         cfg["http_port"] = a.http_port
 
+    if a.scoreboard is not None:
+        cfg.setdefault("scoreboard", {})["protocol"] = a.scoreboard
     if a.list_ports:
         return cmd_list_ports()
+    if a.list_scoreboards:
+        return cmd_list_scoreboards()
     if a.probe or a.configure_bot:
         try:
             return cmd_probe(cfg, configure=a.configure_bot)

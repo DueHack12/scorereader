@@ -64,6 +64,7 @@ class Protocol:
         self.version = 0      # bumps whenever the contract changes
         self.last_time = 0.0  # time of the last decoded packet
         self.last_error = ""
+        self.emulated: dict = {}  # EmulatedClockStatus etc. (kept out of the decoder's own contract)
         self._emulator = None
         try:
             from .contracts import ClockStatusEmulator  # optional until contracts.py exists
@@ -83,8 +84,14 @@ class Protocol:
         return self.decoder.contract
 
     def snapshot(self) -> dict:
+        """A copy of the decoded contract."""
         with self.lock:
             return dict(self.decoder.c)
+
+    def full_contract(self) -> dict:
+        """The contract plus the emulated clock statuses (EmulatedClockStatus …), as the output layer expects."""
+        with self.lock:
+            return {**self.decoder.c, **self.emulated}
 
     def feed(self, data: bytes) -> int:
         """Add raw bytes; returns the number of packets decoded."""
@@ -92,7 +99,7 @@ class Protocol:
         with self.lock:
             self.buf += data
             for pkt in self.extract():
-                before = dict(self.decoder.c)
+                before = (dict(self.decoder.c), dict(self.emulated))
                 try:
                     self.decoder.decode(bytes(pkt))
                 except Exception as e:  # never let one packet kill the stream
@@ -101,13 +108,15 @@ class Protocol:
                     continue
                 if self._emulator is not None:
                     try:
-                        self._emulator.apply(self.decoder.c)
+                        tmp = dict(self.decoder.c)
+                        self._emulator.apply(tmp)
+                        self.emulated = {k: v for k, v in tmp.items() if k.startswith("Emulated")}
                     except Exception:
                         pass
                 n += 1
                 self.packets += 1
                 self.last_time = time.time()
-                if self.decoder.c != before:
+                if (self.decoder.c, self.emulated) != before:
                     self.version += 1
             if len(self.buf) > self.max_buffer:
                 del self.buf[: len(self.buf) - self.max_buffer // 2]

@@ -496,6 +496,34 @@ class _CGBaseball(_CGDecoder):
                 c["PitchCount"] = a[end - 2] + a[end - 1] + a[end]
 
 
+class _CGWrestling(_CGDecoder):
+    contract = "Wrestling"
+    event = "Wrestling"
+    min_len = 28
+    # Unlike the other CG layouts the seconds-and-tenths test looks at column 3. Columns 13-14 are read as the
+    # guest match score and then overwritten by 15-16, so HomeMatchScore* is never filled.
+    spec = (
+        ("HomeScoreTens", 9), ("HomeScoreOnes", 10), ("GuestScoreTens", 11), ("GuestScoreOnes", 12),
+        ("GuestMatchScoreTens", 15), ("GuestMatchScoreOnes", 16), ("Period", 17),
+        ("AdvantageTimeMinutesOnes", 22), ("AdvantageTimeSecondTens", 24), ("AdvantageTimeSecondOnes", 25),
+    )
+
+    def apply(self, c, a):
+        if a[3] == ".":
+            c["ClockMode"] = "."
+            c["ClockMinutesTens"] = c["ClockMinutesOnes"] = "0"
+            c["ClockSecondTens"], c["ClockSecondOnes"], c["ClockTenthsSecond"] = a[4], a[5], a[7]
+        else:
+            c["ClockMode"] = ":"
+            c["ClockMinutesTens"], c["ClockMinutesOnes"] = a[1], a[2]
+            c["ClockSecondTens"], c["ClockSecondOnes"] = a[4], a[5]
+            c["ClockTenthsSecond"] = "0"
+        c["InternalClockStatus"] = "S" if a[8] == "s" else "R"
+        _fill(c, a, self.spec)
+        c["AdvantageHome"] = "*" if a[26] != " " else " "
+        c["AdvantageGuest"] = "*" if a[27] != " " else " "
+
+
 # =================================================================================== Daktronics 4000 (V2 and PIC)
 class Dak4000V2Protocol(Protocol):
     """``AA <16 data bytes> AB`` (18 bytes, no checksum). Data bytes are active-low 7-segment patterns.
@@ -687,6 +715,7 @@ PROTOCOLS = {
     "DaktronicsAllSportsCG_Volleyball": _cg(_CGVolleyball),
     "DaktronicsAllSportsCG_BasketballUNCG": _cg(_CGBasketballUNCG),
     "DaktronicsAllSportsCG_Baseball": _cg(_CGBaseball),
+    "DaktronicsAllSportsCG_Wrestling": _cg(_CGWrestling),
     "Daktronics4000_Football": _v2(_D4Football),
     "Daktronics4000_Football_Code27": _v2(_D4FootballCode27),
     "Daktronics4000_Hockey": _v2(_D4Hockey),

@@ -1,4 +1,4 @@
-"""Blue Vane basketball scoreboards, normal and swapped-teams layouts (RS-232).
+"""Blue Vane basketball scoreboards, normal and swapped-teams layouts (RS-232, 4800 baud).
 
 Wire format: ``STX(02) <16 data bytes> ETX(03)``, ASCII data, no checksum and no length byte. Byte 15 of the
 data is a flag byte. See docs/vendors/bluevane.md for how the swapped layout and ScoreConnect's own

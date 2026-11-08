@@ -51,6 +51,12 @@ def _bcdm(b: int, i: int, mask: int) -> str:
     return bcd(b, i, mask=mask)
 
 
+def _play_clock_tens(b: int, mask: int = 0xFF) -> str:
+    """Play clock tens: 7-9 (and A-F) never occur on a real play clock, so they read blank."""
+    ch = bcd(b & mask, 0)
+    return " " if ch >= "7" else ch
+
+
 def _int(s: str) -> int:
     s = s.strip()
     return int(s) if s.isdigit() else 0
@@ -121,7 +127,7 @@ _FOOTBALL_ROWS = (
     ("GuestScoreTens", 33, bcd, 0), ("GuestScoreOnes", 31, bcd_zero_blank, 0),
     ("HomePossession", 29, _flag, 3, "<"), ("GuestPossession", 29, _flag, 0xC, ">"),
     ("BallOnTens", 5, bcd, 0), ("BallOnOnes", 3, bcd, 0),
-    ("PlayClockTens", 4, bcd, 0), ("PlayClockOnes", 6, bcd, 0),
+    ("PlayClockTens", 4, _play_clock_tens), ("PlayClockOnes", 6, bcd, 0),
     ("Down", 7, bcd, 0), ("ToGoTens", 11, bcd, 0), ("ToGoOnes", 9, bcd, 0),
     ("Quarter", 27, bcd, 0), ("HomeTimeouts", 31, bcd, 1), ("GuestTimeouts", 33, bcd, 1),
 )
@@ -146,7 +152,7 @@ class NevcoFootball827(_NevcoDecoder):
         ("GuestScoreTens", 33, bcd, 0), ("GuestScoreOnes", 31, bcd_zero_blank, 0),
         ("HomePossession", 11, _flag, 2, "<"), ("GuestPossession", 11, _flag, 4, ">"),
         ("BallOnTens", 19, bcd, 1), ("BallOnOnes", 17, bcd, 1),
-        ("PlayClockTens", 4, bcd, 0), ("PlayClockOnes", 6, bcd, 0),
+        ("PlayClockTens", 4, _play_clock_tens, 0xF7), ("PlayClockOnes", 6, bcd, 0),
         ("Down", 27, bcd, 1), ("ToGoTens", 33, bcd, 1), ("ToGoOnes", 31, bcd, 1),
         ("Quarter", 7, bcd, 0), ("HomeTimeouts", 25, bcd, 1), ("GuestTimeouts", 21, bcd, 1),
     )
@@ -193,7 +199,7 @@ class NevcoFootballMPC7Code1(_FootballMPC7):
 class _NevcoBasketball(_NevcoDecoder):
     contract = "Basketball"
     event = "Basketball"
-    reach = 32
+    reach = 33
     marker_value = None      # MPC7 variants only decode packets with this byte at index 34
     blank_zero_minutes = False
     gated_shot_clock = True
@@ -259,7 +265,7 @@ class NevcoBasketballMPC7(_NevcoBasketball):
     rows = (
         ("HomeDoubleBonus", 20, _flag, 4, "B"), ("GuestDoubleBonus", 20, _flag, 8, "B"),
         ("HomeFoulTens", 29, _flag, 1, "1"), ("HomeFoulOnes", 11, bcd, 0),
-        ("GuestFoulTens", 29, _flag, 2, "1"), ("GuestFoulOnes", 7, bcd, 0),
+        ("GuestFoulTens", 29, _flag, 2, "1"), ("GuestFoulOnes", 9, bcd, 0),
         # byte 1 is the constant 01 of the PIC frame, so the number of fouls always reads "1" (as in ScoreConnect)
         ("FoulPlayerTens", 3, bcd, 0), ("FoulPlayerOnes", 5, bcd, 0), ("FoulPlayerNumberOfFouls", 1, bcd, 0),
         ("GuestTimeouts", 26, bcd, 0), ("HomeTimeouts", 28, bcd, 0),

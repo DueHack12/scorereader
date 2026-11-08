@@ -15,7 +15,7 @@ id      content
 4       ``f[5]`` period
 5       ``f[4]`` possession 1 = home, 2 = guest, 3 = both, else none
 17      ``f[4]``/``f[5]`` home/guest team name
-30      ``f[4]`` game clock, ``f[6]`` timeout clock, ``f[9]`` clock stopped flag
+30      ``f[4]`` game clock (``MM:SS`` or ``SS.t``), ``f[6]`` timeout clock, ``f[9]`` clock stopped flag
 31      ``f[4]`` shot clock
 32      ``f[7]``/``f[8]`` home/guest timeouts
 ======  =====================================================================================
@@ -80,24 +80,21 @@ class TissotBasketball(Decoder):
         return f"{(total // 60) % 60:02d}{total % 60:02d}"
 
     def _set_clock(self, s: str) -> None:
+        """Game clock text (Windows build): "MM:SS" or "SS.t"; values are kept to their last two digits."""
         c = self.c
-        try:
-            parts = s.split(".")
-            if len(parts) == 1:
-                m, sec = s.split(":")[:2] if s.count(":") else (s, None)
-                if sec is None:
-                    return
-                t = self._mmss(_to_int(m), _to_int(sec))
-                c.update(ClockMinutesTens=t[0], ClockMinutesOnes=t[1], ClockMode=":", ClockSecondTens=t[2],
-                         ClockSecondOnes=t[3], ClockTenthsSecond="0")
-            else:
-                ms = max(0, _to_int(parts[0]) * 1000 + _to_int(parts[1]) * 100 + 1)
-                t = f"{(ms // 1000) % 60:02d}"
-                c.update(ClockMinutesTens="0", ClockMinutesOnes="0", ClockSecondTens=t[0], ClockSecondOnes=t[1],
-                         ClockMode=".")
-                c["ClockTenthsSecond"] = s[9]  # fixed-width field; short strings leave the tenths alone
-        except IndexError:
-            pass
+        if "." not in s:
+            m, _, rest = s.partition(":")
+            sec = rest.partition(":")[0]
+            mm, ss = abs(_to_int(m)) % 100, abs(_to_int(sec)) % 100
+            c.update(ClockMinutesTens=str(mm // 10), ClockMinutesOnes=str(mm % 10), ClockMode=":",
+                     ClockSecondTens=str(ss // 10), ClockSecondOnes=str(ss % 10), ClockTenthsSecond="0")
+        else:
+            whole, _, rest = s.partition(".")
+            frac = rest.partition(".")[0]
+            ms = max(0, _to_int(whole) * 1000 + _to_int(frac) * 100 + 1)
+            sec = (ms // 1000) % 60  # as System.TimeSpan "c" prints it
+            c.update(ClockMinutesTens="0", ClockMinutesOnes="0", ClockSecondTens=str(sec // 10),
+                     ClockSecondOnes=str(sec % 10), ClockMode=".", ClockTenthsSecond=str((ms % 1000) // 100))
 
     def _game_clock(self, f):
         if len(f) < 7:
