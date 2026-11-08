@@ -67,3 +67,21 @@ def test_start_serves_favicon_and_shutdown_is_clean(tmp_path, monkeypatch):
         app.shutdown()
         app.shutdown()  # second call is a no-op
     assert app.stop.is_set() and app.reader.stop.is_set()
+
+
+def test_log_survives_a_closed_console_and_detach_writes_to_file(tmp_path, monkeypatch):
+    class Closed:
+        def write(self, *_):
+            raise OSError(5, "Input/output error")
+
+        def flush(self):
+            raise OSError(5, "Input/output error")
+    monkeypatch.setattr(sys, "stdout", Closed())
+    sr.log("window gone")  # must not raise
+    assert sr.STATUS.logs[-1].endswith("window gone")
+    path = tmp_path / "logs" / "scorereader.log"
+    monkeypatch.setattr(sys, "stderr", sys.stderr)  # restored after the test
+    sr.detach_console(str(path))
+    sr.log("still running")
+    sys.stdout.flush()
+    assert "still running" in path.read_text()

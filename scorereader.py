@@ -132,8 +132,22 @@ _PRINT_LOCK = threading.Lock()
 def log(msg: str) -> None:
     line = f"{_dt.datetime.now():%H:%M:%S} {msg}"
     with _PRINT_LOCK:
-        print(line, flush=True)
+        try:
+            print(line, flush=True)
+        except (OSError, ValueError, AttributeError):
+            pass  # the console window was closed (Mac menu bar keeps running): the line still reaches the dashboard
     STATUS.add_log(line)
+
+
+def detach_console(path: str) -> None:
+    """Send further console output to a log file, so the program keeps running after its window is closed."""
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        f = open(path, "a", encoding="utf-8", buffering=1)
+    except OSError:
+        f = open(os.devnull, "w")
+    with _PRINT_LOCK:
+        sys.stdout = sys.stderr = f
 
 
 def set_window_title(title: str) -> None:

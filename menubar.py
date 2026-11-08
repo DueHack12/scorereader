@@ -1,7 +1,8 @@
 """ScoreReader's Mac menu bar icon.
 
-Shows the live status and score, and offers Open dashboard, Re-init bot, Demo mode and Quit. ScoreReader keeps
-running in its Terminal window as well; this only adds the icon. Needs ``rumps`` (installed on macOS by
+Shows the live status and score, and offers Open dashboard, Re-init bot, Demo mode, Open logs folder and Quit.
+ScoreReader also shows its log in the Terminal window; closing that window leaves ScoreReader running in the menu
+bar (the log continues in logs/scorereader.log). Quit from the menu, or Ctrl+C in the Terminal, stops it. Needs ``rumps`` (installed on macOS by
 requirements.txt and bundled in the Mac download); without it ScoreReader runs exactly as before.
 """
 from __future__ import annotations
@@ -54,6 +55,7 @@ def run(app) -> None:
             self.demo = rumps.MenuItem("Demo mode", callback=self.toggle_demo)
             self.menu = [self.status, None, rumps.MenuItem("Open dashboard", callback=self.open_dashboard),
                          rumps.MenuItem("Re-init bot", callback=self.reinit), self.demo, None,
+                         rumps.MenuItem("Open logs folder", callback=self.open_logs),
                          rumps.MenuItem("Quit ScoreReader", callback=self.quit)]
             self._set_dock_icon()
             self._timer = rumps.Timer(self.refresh, 1)  # refresh the status line once a second
@@ -85,6 +87,10 @@ def run(app) -> None:
         def open_dashboard(self, _):
             webbrowser.open(app.dashboard_url)
 
+        def open_logs(self, _):
+            os.makedirs(sr.LOG_DIR, exist_ok=True)
+            os.system(f'open "{sr.LOG_DIR}"')
+
         def reinit(self, _):
             app.reader.reinit_request.set()
             sr.log("Re-init requested from the menu bar")
@@ -99,12 +105,17 @@ def run(app) -> None:
 
     import signal
 
-    def _stop(*_):  # Ctrl+C / closing the Terminal window: the 1-second timer sees this and quits
+    def _stop(*_):  # Ctrl+C / system shutdown: the 1-second timer sees this and quits
         app.stop.set()
 
-    for sig in ("SIGINT", "SIGTERM", "SIGHUP"):
+    def _window_closed(*_):  # Terminal window closed: keep running in the menu bar, log to a file instead
+        sr.detach_console(LOG_FILE)
+        sr.log(f"Terminal window closed; ScoreReader keeps running in the menu bar (log: {LOG_FILE})")
+
+    LOG_FILE = os.path.join(sr.LOG_DIR, "scorereader.log")
+    for sig, handler in (("SIGINT", _stop), ("SIGTERM", _stop), ("SIGHUP", _window_closed)):
         if hasattr(signal, sig):
-            signal.signal(getattr(signal, sig), _stop)
+            signal.signal(getattr(signal, sig), handler)
     try:
         MenuBar().run()
     finally:
