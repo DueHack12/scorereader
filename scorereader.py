@@ -42,7 +42,7 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from xml.sax.saxutils import escape as xml_escape
 
-__version__ = "1.0.0"
+__version__ = "2.0.0"
 
 APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0] if getattr(sys, "frozen", False) else __file__))
 RES_DIR = getattr(sys, "_MEIPASS", APP_DIR)  # PyInstaller support
