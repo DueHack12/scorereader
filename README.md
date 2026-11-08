@@ -16,7 +16,7 @@ Scoreboard console ──▶ ScoreBot (USB) ──▶ ScoreReader ──▶ vMix
 
 | Computer | What to do |
 |---|---|
-| **Windows** | Download `ScoreReader-windows-x64.exe` and double-click it. |
+| **Windows** | Download `ScoreReader-windows-x64.zip`, right-click it and choose **Extract All**, then open the `ScoreReader` folder and double-click **ScoreReader.exe**. Keep the folder together; ScoreReader needs the files next to it. |
 | **Mac** (Apple silicon) | Download `ScoreReader-macos-arm64.dmg`, open it and drag **ScoreReader** into **Applications**. The first time you open it, macOS blocks it because it isn't signed: go to **System Settings → Privacy & Security** and click **Open Anyway**. ScoreReader then runs in the menu bar (the seven-segment S icon). |
 | **Linux or Raspberry Pi** | Download the source (**Code → Download ZIP**), then run `./linux/install.sh` once and `./linux/start.sh` to start. `./linux/install.sh --service` makes it start automatically at boot. |
 
