@@ -106,7 +106,7 @@ Daktronics current-loop boards can be wired differently. To point a field at the
 ## Mac, Linux and Raspberry Pi details
 
 - **Mac app (`ScoreReader.app`):** runs in the menu bar (status and score, Open dashboard, Re-init bot, Demo mode, Open logs folder, Quit) and the Dock, with no Terminal window. Quit with the menu bar's **Quit ScoreReader** or ⌘Q. Settings, logs and text files are in `~/Library/Application Support/ScoreReader`. Running from source (`mac/Start ScoreReader.command`) shows the same menu bar icon plus a Terminal window; closing that window leaves ScoreReader running in the menu bar. `--no-menubar` turns the icon off.
-- **Windows:** `ScoreReader.exe` shows the logo, and its window is titled "ScoreReader <version>". If the taskbar shows the Windows Terminal icon instead, set **Settings → System → For developers → Terminal** to **Windows Console Host**.
+- **Windows:** the download is a `.zip` with a `ScoreReader` folder; extract it and run `ScoreReader.exe` (keep the folder together, its other files are needed). Settings and logs are stored in that folder. `ScoreReader.exe` shows the logo, and its window is titled "ScoreReader <version>". If Windows Defender still flags it, it's a false positive: allow it under **Windows Security → Protection history**, and report it at microsoft.com/wdsi/filesubmission. If the taskbar shows the Windows Terminal icon instead, set **Settings → System → For developers → Terminal** to **Windows Console Host**.
 - **Serial port:** the bot shows up as `/dev/cu.usbmodem…` on a Mac and as `/dev/ttyACM0` or `/dev/scorebot` on Linux. Port `auto` finds it.
 - **What `linux/install.sh` does:**
   - Installs `python3-serial` and `python3-hid`.

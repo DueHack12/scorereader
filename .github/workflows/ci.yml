@@ -54,6 +54,20 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m pip install -r requirements.txt pyinstaller
+      - name: Version from the release tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          # The app reports exactly the tag's version (tag v2.1.2 -> 2.1.2), even if the code wasn't bumped.
+          VERSION="${GITHUB_REF_NAME#v}"
+          python - "$VERSION" <<'EOF'
+          import re, sys
+          p = "scorereader.py"
+          s = open(p, encoding="utf-8").read()
+          s = re.sub(r'^__version__ = ".*"$', f'__version__ = "{sys.argv[1]}"', s, count=1, flags=re.M)
+          open(p, "w", encoding="utf-8").write(s)
+          EOF
+          python scorereader.py --version
       - name: Build
         shell: bash
         run: |
@@ -74,15 +88,20 @@ jobs:
               /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $VERSION" "$PLIST"
             /usr/libexec/PlistBuddy -c "Add :NSHighResolutionCapable bool true" "$PLIST" 2>/dev/null || true
             codesign --force --deep --sign - dist/ScoreReader.app   # ad-hoc signature (Info.plist changed)
+          elif [ "$RUNNER_OS" = "Windows" ]; then
+            # A folder (ScoreReader.exe + its files), not one self-extracting .exe, with real version details:
+            # both make antivirus false positives much less likely.
+            python windows/make_version_info.py
+            python -m PyInstaller "${COMMON[@]}" --onedir --icon assets/icon.ico \
+              --version-file windows/version_info.txt scorereader.py
           else
-            EXTRA=""; [ "$RUNNER_OS" = "Windows" ] && EXTRA="--icon assets/icon.ico"
-            python -m PyInstaller "${COMMON[@]}" --onefile $EXTRA scorereader.py
+            python -m PyInstaller "${COMMON[@]}" --onefile scorereader.py
           fi
       - name: Smoke test
         shell: bash
         run: |
           EXE=dist/ScoreReader
-          [ "$RUNNER_OS" = "Windows" ] && EXE=dist/ScoreReader.exe
+          [ "$RUNNER_OS" = "Windows" ] && EXE=dist/ScoreReader/ScoreReader.exe
           [ "$RUNNER_OS" = "macOS" ] && EXE=dist/ScoreReader.app/Contents/MacOS/ScoreReader
           "$EXE" --version
           "$EXE" --list-scoreboards | tail -1
@@ -91,7 +110,7 @@ jobs:
         run: |
           mkdir -p pkg
           if [ "$RUNNER_OS" = "Windows" ]; then
-            cp dist/ScoreReader.exe "pkg/${{ matrix.name }}.exe"
+            (cd dist && 7z a -tzip -bso0 "../pkg/${{ matrix.name }}.zip" ScoreReader)
           elif [ "$RUNNER_OS" = "macOS" ]; then
             mkdir -p dmg && cp -R dist/ScoreReader.app dmg/ && ln -s /Applications dmg/Applications
             hdiutil create -volname ScoreReader -srcfolder dmg -ov -format UDZO "pkg/${{ matrix.name }}.dmg"

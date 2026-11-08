@@ -9,3 +9,4 @@ scorereader_config.json
 scorereader_state.bin*
 logs/
 text_out/
+windows/version_info.txt

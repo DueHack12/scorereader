@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 2.1.2 — 2026-11-08
+- **Windows download is now a `.zip`:** `ScoreReader-windows-x64.zip` contains a `ScoreReader` folder with `ScoreReader.exe`; extract it and run the `.exe`. The single self-extracting `.exe` was being flagged by Windows Defender as a virus (a false positive common to packaged Python apps); a plain folder, plus real version details on the `.exe` (Properties > Details), makes that much less likely.
+- **Release version:** release builds take their version from the tag, so the apps always report the right version (2.1.1 shipped saying 2.1.0).
+
+## 2.1.1 — 2026-11-08
 - **Shorter data.json / XML / CSV:** outputs now carry only the fields used in the sport (clock, scores, period, team names and colours, plus that sport's own fields such as down & distance, shots and corners, or fouls and shot clock). Fields with no data yet are blank. The raw Daktronics RTD and Sportzcast contract fields no longer appear unless **Settings → Advanced → Include every raw field** is on; the dashboard still lists everything.
 - **Soccer over RTD:** now has `home_shots`, `home_corners` and `home_saves` (and guest), the same names as current-loop soccer.
 
