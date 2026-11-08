@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+- **Logo:** a new ScoreReader icon (a seven-segment S with a signal), used for the Windows app, the Mac Dock and menu bar, and the dashboard's browser tab.
+- **Windows:** `ScoreReader.exe` shows the logo, and its window is titled "ScoreReader <version>", so the taskbar shows the name and logo.
+- **Mac menu bar:** live status and score, Open dashboard, Re-init bot, Demo mode, Open logs folder and Quit. Closing the Terminal window keeps ScoreReader running in the menu bar (the log goes on in `logs/scorereader.log`). The app menu has **Quit ScoreReader** (⌘Q). `--no-menubar` turns the icon off.
+
 ## 2.0.0 — 2026-11-08
 - **Every ScoreConnect scoreboard brand:** about 300 brand/sport layouts across 50 brands, in the new `scoreboards/` package, picked in Settings or with `--scoreboard ID`. The ScoreBot is configured for the chosen brand and wiring automatically, and MQTT payloads come from the Sportzcast contract. These are untested on real boards; Daktronics All Sport 5000 stays the default with the original decoders.
 - **Settings panel** in the dashboard: data source (including demo and replay), scoreboard brand, team names, abbreviations and colors, vMix, MQTT, files and ports. Source changes apply live.

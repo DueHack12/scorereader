@@ -117,10 +117,32 @@ def run(app) -> None:
         if hasattr(signal, sig):
             signal.signal(getattr(signal, sig), handler)
     _rename_process("ScoreReader")
+    rumps.events.before_start.register(_install_app_menu)       # "ScoreReader" menu next to the Apple menu
+    rumps.events.before_quit.register(lambda *_: app.shutdown())  # any quit (menu, ⌘Q, logout) shuts down cleanly
     try:
         MenuBar().run()
     finally:
         app.shutdown()
+
+
+def _install_app_menu(*_) -> None:
+    """Give the bold app menu (next to the Apple menu) the standard items, including Quit ScoreReader (⌘Q)."""
+    try:
+        from AppKit import NSApplication, NSMenu, NSMenuItem
+
+        nsapp = NSApplication.sharedApplication()
+        bar = NSMenu.alloc().init()
+        top = NSMenuItem.alloc().init()
+        bar.addItem_(top)
+        menu = NSMenu.alloc().initWithTitle_("ScoreReader")
+        for title, action, key in (("Hide ScoreReader", "hide:", "h"), (None, None, None),
+                                   ("Quit ScoreReader", "terminate:", "q")):
+            menu.addItem_(NSMenuItem.separatorItem() if title is None
+                          else NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(title, action, key))
+        top.setSubmenu_(menu)
+        nsapp.setMainMenu_(bar)
+    except Exception:
+        pass
 
 
 def _rename_process(name: str) -> None:
